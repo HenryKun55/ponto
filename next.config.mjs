@@ -10,11 +10,10 @@ const nextConfig = {
   images: {
     unoptimized: true, // Necessário para exportação estática
   },
-  // O basePath deve corresponder ao nome do seu repositório se não estiver usando um domínio personalizado
-  // Por exemplo, se seu repositório for github.com/seunome/ponto-app
-  basePath: '/ponto',
-  
-  // Descomente e ajuste a linha acima quando for fazer o deploy
+  // Configuração dinâmica do basePath
+  basePath: process.env.NODE_ENV === 'production' ? '/ponto' : '',
+
+  // Caso você não precise do basePath em produção, apenas deixe a linha comentada.
 };
 
 export default nextConfig;

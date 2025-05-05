@@ -2,9 +2,6 @@
 import { getTodayEntryFirebase, saveTimeEntryFirebase, getAllTimeEntriesFirebase } from "./firebase"
 import type { TimeEntry } from "./types"
 
-// No GitHub Pages, sempre usaremos Firebase
-const isStaticHosting = true
-
 // Clock in action (client-side version)
 export async function clockIn(employee: string) {
   const now = new Date()
@@ -20,15 +17,15 @@ export async function clockIn(employee: string) {
         return { success: false, message: "Já registrou entrada hoje." }
       }
 
-      // If already completed today's entry, create a new one
+      // If already completed today's entry (clockIn and clockOut), do nothing
       if (todayEntry.clockIn && todayEntry.clockOut) {
-        todayEntry = null
+        return { success: false, message: "Já registrou entrada e saída hoje." }
       }
     }
 
     if (!todayEntry) {
-      // Create a new entry
-      const newEntry: TimeEntry = {
+      // Create a new entry if no entry exists for today
+      todayEntry = {
         id: `${employee}-${Date.now()}`,
         employee,
         date: today,
@@ -36,15 +33,15 @@ export async function clockIn(employee: string) {
         clockOut: null,
         createdAt: now.toISOString(),
       }
-
-      await saveTimeEntryFirebase(newEntry)
-
-      // No GitHub Pages, não podemos usar revalidatePath
-      // Vamos retornar um sinal para o cliente atualizar a UI
-      return { success: true, message: "Entrada registrada com sucesso!", refresh: true }
+    } else {
+      // Update the entry with clockIn if it already exists
+      todayEntry.clockIn = now.toISOString()
     }
 
-    return { success: false, message: "Erro ao registrar entrada." }
+    // Save the entry (or update it)
+    await saveTimeEntryFirebase(todayEntry)
+
+    return { success: true, message: "Entrada registrada com sucesso!", refresh: true }
   } catch (error) {
     console.error("Error in clockIn:", error)
     return { success: false, message: "Erro ao registrar entrada." }
@@ -64,7 +61,6 @@ export async function clockOut(employee: string) {
       todayEntry.clockOut = now.toISOString()
       await saveTimeEntryFirebase(todayEntry)
 
-      // No GitHub Pages, não podemos usar revalidatePath
       return { success: true, message: "Saída registrada com sucesso!", refresh: true }
     }
 

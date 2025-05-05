@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app"
-import { getFirestore, collection, addDoc, getDocs, query, where, type Timestamp, orderBy } from "firebase/firestore"
+import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore";
+import { getFirestore, collection, getDocs, query, where, orderBy } from "firebase/firestore"
 import type { TimeEntry } from "./types"
 
 // Firebase configuration
@@ -17,19 +18,9 @@ const app = initializeApp(firebaseConfig)
 const db = getFirestore(app)
 
 // Convert Firestore timestamp to ISO string
-const timestampToISOString = (timestamp: Timestamp) => {
-  return timestamp.toDate().toISOString()
-}
-
-// Convert TimeEntry to Firestore format
-const entryToFirestore = (entry: TimeEntry) => {
-  return {
-    employee: entry.employee,
-    clockIn: entry.clockIn ? new Date(entry.clockIn) : null,
-    clockOut: entry.clockOut ? new Date(entry.clockOut) : null,
-    date: entry.date,
-    createdAt: new Date(entry.createdAt),
-  }
+const timestampToISOString = (timestamp: string) => {
+  const date = new Date(timestamp)
+  return date.toISOString()
 }
 
 // Convert Firestore document to TimeEntry
@@ -71,25 +62,25 @@ export async function getTodayEntryFirebase(employee: string): Promise<TimeEntry
     return null
   }
 
-  return firestoreToEntry(entriesSnapshot.docs[0])
+  const lastEntry = entriesSnapshot.docs[entriesSnapshot.docs.length - 1]
+
+  return firestoreToEntry(lastEntry)
 }
 
-// Add or update a time entry
-export async function saveTimeEntryFirebase(entry: TimeEntry): Promise<TimeEntry> {
-  const entriesCol = collection(db, "timeEntries")
+export async function saveTimeEntryFirebase(entry: TimeEntry) {
+  const entryRef = doc(db, "timeEntries", entry.id);
 
-  // If entry has an ID and it's not a generated one, try to update
-  if (entry.id && !entry.id.includes("-")) {
-    // For simplicity in this example, we'll just add a new document
-    // In a real app, you'd use doc() and setDoc() to update
+  if (await entryExists(entry.id)) {
+    // Se o documento já existe, atualiza o documento
+    await updateDoc(entryRef, entry);
+  } else {
+    // Se o documento não existe, cria um novo
+    await setDoc(entryRef, entry);
   }
+}
 
-  // Add new document
-  const firestoreEntry = entryToFirestore(entry)
-  const docRef = await addDoc(entriesCol, firestoreEntry)
-
-  return {
-    ...entry,
-    id: docRef.id,
-  }
+async function entryExists(id: string): Promise<boolean> {
+  const entryRef = doc(db, "timeEntries", id);
+  const docSnapshot = await getDoc(entryRef);
+  return docSnapshot.exists();
 }

@@ -71,14 +71,14 @@ export function ClockForm({ employee, hasClockIn, hasClockOut }: ClockFormProps)
       <div className="flex flex-col space-y-4">
         <Button
           onClick={handleClockIn}
-          disabled={isLoading || (hasClockIn && !hasClockOut)}
+          disabled={isLoading || hasClockIn }
           className="bg-primary hover:bg-primary/90"
         >
           Registrar Entrada
         </Button>
         <Button
           onClick={handleClockOut}
-          disabled={isLoading || !hasClockIn || hasClockOut}
+          disabled={isLoading ||  hasClockOut}
           variant="outline"
           className="border-primary text-primary hover:bg-primary/10"
         >
