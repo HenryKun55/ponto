@@ -23,18 +23,25 @@ const timestampToISOString = (timestamp: string) => {
   return date.toISOString()
 }
 
-// Convert Firestore document to TimeEntry
 const firestoreToEntry = (doc: any): TimeEntry => {
-  const data = doc.data()
+  const data = doc.data();
   return {
     id: doc.id,
     employee: data.employee,
     clockIn: data.clockIn ? timestampToISOString(data.clockIn) : null,
     clockOut: data.clockOut ? timestampToISOString(data.clockOut) : null,
+    clockInLocation: data.clockInLocation,
+    clockOutLocation: data.clockOutLocation,
     date: data.date,
     createdAt: timestampToISOString(data.createdAt),
-  }
-}
+    realClockInTime: data.realClockInTime
+      ? timestampToISOString(data.realClockInTime)
+      : null,
+    realClockOutTime: data.realClockOutTime
+      ? timestampToISOString(data.realClockOutTime)
+      : null,
+  };
+};
 
 // Get all time entries
 export async function getAllTimeEntriesFirebase(): Promise<TimeEntry[]> {

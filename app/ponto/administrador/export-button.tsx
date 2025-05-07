@@ -23,9 +23,27 @@ export function ExportButton({ entries }: ExportButtonProps) {
       const data = entries.map((entry) => ({
         Funcionário: entry.employee,
         Data: formatDate(entry.date),
-        Entrada: entry.clockIn ? formatTime(entry.clockIn) : "-",
-        Saída: entry.clockOut ? formatTime(entry.clockOut) : "-",
+        "Entrada Registrada": entry.clockIn ? formatTime(entry.clockIn) : "-",
+        "Entrada Real": entry.realClockInTime ? formatTime(entry.realClockInTime) : "-",
+        "Saída Registrada": entry.clockOut ? formatTime(entry.clockOut) : "-",
+        "Saída Real": entry.realClockOutTime ? formatTime(entry.realClockOutTime) : "-",
         Duração: calculateDuration(entry.clockIn, entry.clockOut),
+        "IP Entrada": entry.clockInLocation ? entry.clockInLocation.ip : "-",
+        "Cidade Entrada": entry.clockInLocation ? entry.clockInLocation.city : "-",
+        "Região Entrada": entry.clockInLocation ? entry.clockInLocation.region_name : "-",
+        "País Entrada": entry.clockInLocation ? entry.clockInLocation.country_name : "-",
+        "CEP Entrada": entry.clockInLocation ? entry.clockInLocation.zip_code : "-",
+        "Coordenadas Entrada": entry.clockInLocation
+          ? `${entry.clockInLocation.latitude.toFixed(6)}, ${entry.clockInLocation.longitude.toFixed(6)}`
+          : "-",
+        "IP Saída": entry.clockOutLocation ? entry.clockOutLocation.ip : "-",
+        "Cidade Saída": entry.clockOutLocation ? entry.clockOutLocation.city : "-",
+        "Região Saída": entry.clockOutLocation ? entry.clockOutLocation.region_name : "-",
+        "País Saída": entry.clockOutLocation ? entry.clockOutLocation.country_name : "-",
+        "CEP Saída": entry.clockOutLocation ? entry.clockOutLocation.zip_code : "-",
+        "Coordenadas Saída": entry.clockOutLocation
+          ? `${entry.clockOutLocation.latitude.toFixed(6)}, ${entry.clockOutLocation.longitude.toFixed(6)}`
+          : "-",
       }))
 
       // Create worksheet

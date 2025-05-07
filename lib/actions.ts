@@ -1,9 +1,9 @@
 "use client"
 import { getTodayEntryFirebase, saveTimeEntryFirebase, getAllTimeEntriesFirebase } from "./firebase"
-import type { TimeEntry } from "./types"
+import type { GeoLocation } from "./types"
 
 // Clock in action (client-side version)
-export async function clockIn(employee: string) {
+export async function clockIn(employee: string, selectedTime: string, location: GeoLocation | null) {
   const now = new Date()
   const today = now.toISOString().split("T")[0]
 
@@ -29,13 +29,19 @@ export async function clockIn(employee: string) {
         id: `${employee}-${Date.now()}`,
         employee,
         date: today,
-        clockIn: now.toISOString(),
+        clockIn: selectedTime,
         clockOut: null,
+        realClockInTime: now.toISOString(),
+        realClockOutTime: null,
+        clockInLocation: location,
+        clockOutLocation: null,
         createdAt: now.toISOString(),
       }
     } else {
       // Update the entry with clockIn if it already exists
-      todayEntry.clockIn = now.toISOString()
+      todayEntry.clockIn = selectedTime
+      todayEntry.realClockInTime = now.toISOString()
+      todayEntry.clockInLocation = location
     }
 
     // Save the entry (or update it)
@@ -49,7 +55,7 @@ export async function clockIn(employee: string) {
 }
 
 // Clock out action (client-side version)
-export async function clockOut(employee: string) {
+export async function clockOut(employee: string, selectedTime: string, location: GeoLocation | null) {
   const now = new Date()
 
   try {
@@ -58,7 +64,10 @@ export async function clockOut(employee: string) {
 
     if (todayEntry && todayEntry.clockIn && !todayEntry.clockOut) {
       // Update the entry with clock out time
-      todayEntry.clockOut = now.toISOString()
+      todayEntry.clockOut = selectedTime
+      todayEntry.realClockOutTime = now.toISOString()
+      todayEntry.clockOutLocation = location
+
       await saveTimeEntryFirebase(todayEntry)
 
       return { success: true, message: "Saída registrada com sucesso!", refresh: true }
