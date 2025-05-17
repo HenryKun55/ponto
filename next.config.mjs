@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',  // Configura para exportação estática
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -9,10 +10,7 @@ const nextConfig = {
   images: {
     unoptimized: true, // Necessário para exportação estática
   },
-  // Configuração dinâmica do basePath
   basePath: '',
-
-  // Caso você não precise do basePath em produção, apenas deixe a linha comentada.
 };
 
 export default nextConfig;
