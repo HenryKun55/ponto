@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',  // Configura para exportação estática
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -11,7 +10,7 @@ const nextConfig = {
     unoptimized: true, // Necessário para exportação estática
   },
   // Configuração dinâmica do basePath
-  basePath: process.env.NODE_ENV === 'production' ? '/ponto' : '',
+  basePath: '',
 
   // Caso você não precise do basePath em produção, apenas deixe a linha comentada.
 };
