@@ -10,7 +10,8 @@ const nextConfig = {
   images: {
     unoptimized: true, // Necessário para exportação estática
   },
-  basePath: '',
+  basePath: process.env.NODE_ENV === 'production' ? '/ponto' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/ponto/' : '',
 };
 
 export default nextConfig;
