@@ -74,6 +74,7 @@ export async function getAllTimeEntriesFilteredFirebase(
 
   const constraints = []
 
+  // Se passar filtro, adiciona os where
   if (startDateStr) {
     constraints.push(where('date', '>=', startDateStr))
   }
@@ -82,9 +83,13 @@ export async function getAllTimeEntriesFilteredFirebase(
     constraints.push(where('date', '<=', endDateStr))
   }
 
-  constraints.push(orderBy('date', 'desc'))
+  // Sempre colocar orderBy após os where e no mesmo campo
+  constraints.push(orderBy('date', 'asc'))
 
-  const entriesSnapshot = await getDocs(query(entriesCol, ...constraints))
+  // Monta a query
+  const q = query(entriesCol, ...constraints)
+
+  const entriesSnapshot = await getDocs(q)
   return entriesSnapshot.docs.map((doc) => doc.data() as TimeEntry)
 }
 

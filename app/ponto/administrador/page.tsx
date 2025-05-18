@@ -59,7 +59,7 @@ export default () => {
         dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
         dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined
       )
-      setTimeEntries(entries)
+      setTimeEntries(entries.reverse())
     } catch (error) {
       console.error('Error fetching time entries:', error)
     } finally {
