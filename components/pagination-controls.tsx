@@ -58,7 +58,6 @@ export const PaginationControls = ({
           />
         </PaginationItem>
 
-        {/* Primeira página */}
         {showEndPages && showStartEllipsis && (
           <>
             <PaginationItem>
@@ -78,7 +77,6 @@ export const PaginationControls = ({
           </>
         )}
 
-        {/* Páginas numéricas */}
         {pageNumbers.map((page) => (
           <PaginationItem key={page}>
             <PaginationLink
@@ -94,7 +92,6 @@ export const PaginationControls = ({
           </PaginationItem>
         ))}
 
-        {/* Última página */}
         {showEndPages && showEndEllipsis && (
           <>
             <PaginationItem>

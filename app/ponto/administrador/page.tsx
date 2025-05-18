@@ -2,7 +2,10 @@
 
 import { Button } from '@/components/ui/button'
 import { useEffect, useState } from 'react'
-import { getAllTimeEntriesFirebase } from '@/lib/firebase'
+import {
+  getAllTimeEntriesFilteredFirebase,
+  getAllTimeEntriesFirebase,
+} from '@/lib/firebase'
 import {
   Card,
   CardContent,
@@ -27,12 +30,19 @@ import { LocationsTable } from '@/components/administrador/LocationTable'
 import { TimeEntriesDetailsTable } from '@/components/administrador/TimeEntriesDetailsTable'
 import { TimeEntry } from '@/lib/types'
 import { RenderTabContent } from '@/components/administrador/RenderTabComponent'
+import { DateRangePicker } from '@/components/date-range-picker'
+import { DateRange } from 'react-day-picker'
+import { format } from 'date-fns'
 
 export default () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMock, setIsLoadingMock] = useState(false)
   const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  })
 
   const entriesPagination = usePagination(timeEntries, itemsPerPage)
   const detailsPagination = usePagination(timeEntries, itemsPerPage)
@@ -45,7 +55,10 @@ export default () => {
 
   const fetchData = async () => {
     try {
-      const entries = await getAllTimeEntriesFirebase()
+      const entries = await getAllTimeEntriesFilteredFirebase(
+        dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
+        dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined
+      )
       setTimeEntries(entries)
     } catch (error) {
       console.error('Error fetching time entries:', error)
@@ -73,7 +86,7 @@ export default () => {
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [dateRange])
 
   if (loading) {
     return (
@@ -135,6 +148,8 @@ export default () => {
                     {loadingMock ? 'Gerando...' : 'Gerar mock'}
                   </Button>
                 )}
+
+                <DateRangePicker date={dateRange} setDate={setDateRange} />
               </div>
             </div>
 

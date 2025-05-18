@@ -9,6 +9,7 @@ import {
   DocumentData,
   limit,
   startAfter,
+  Timestamp,
 } from 'firebase/firestore'
 import {
   getFirestore,
@@ -65,30 +66,26 @@ export async function getAllTimeEntriesFirebase(): Promise<TimeEntry[]> {
   return entriesSnapshot.docs.map(firestoreToEntry)
 }
 
-export async function getTimeEntriesCount(): Promise<number> {
+export async function getAllTimeEntriesFilteredFirebase(
+  startDateStr?: string,
+  endDateStr?: string
+): Promise<TimeEntry[]> {
   const entriesCol = collection(db, 'timeEntries')
-  const snapshot = await getCountFromServer(entriesCol)
-  return snapshot.data().count
-}
 
-export async function getPaginatedTimeEntriesFirebase(
-  pageSize: number,
-  lastDoc?: QueryDocumentSnapshot<DocumentData>
-): Promise<{
-  entries: TimeEntry[]
-  lastVisible?: QueryDocumentSnapshot<DocumentData>
-}> {
-  const entriesCol = collection(db, 'timeEntries')
-  const baseQuery = query(entriesCol, orderBy('date', 'desc'), limit(pageSize))
-  const paginatedQuery = lastDoc
-    ? query(baseQuery, startAfter(lastDoc))
-    : baseQuery
+  const constraints = []
 
-  const snapshot = await getDocs(paginatedQuery)
-  const entries = snapshot.docs.map(firestoreToEntry)
-  const lastVisible = snapshot.docs[snapshot.docs.length - 1]
+  if (startDateStr) {
+    constraints.push(where('date', '>=', startDateStr))
+  }
 
-  return { entries, lastVisible }
+  if (endDateStr) {
+    constraints.push(where('date', '<=', endDateStr))
+  }
+
+  constraints.push(orderBy('date', 'desc'))
+
+  const entriesSnapshot = await getDocs(query(entriesCol, ...constraints))
+  return entriesSnapshot.docs.map((doc) => doc.data() as TimeEntry)
 }
 
 export async function getEmployeeTimeEntriesFirebase(
