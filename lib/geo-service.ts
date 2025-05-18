@@ -1,4 +1,4 @@
-import { GeoLocation } from "./types"
+import { GeoLocation } from './types'
 
 export async function getGeoLocation(): Promise<GeoLocation> {
   try {

@@ -1,11 +1,19 @@
-"use client"
-import { getTodayEntryFirebase, saveTimeEntryFirebase, getAllTimeEntriesFirebase } from "./firebase"
-import type { GeoLocation } from "./types"
+'use client'
+import {
+  getTodayEntryFirebase,
+  saveTimeEntryFirebase,
+  getAllTimeEntriesFirebase,
+} from './firebase'
+import type { GeoLocation } from './types'
 
 // Clock in action (client-side version)
-export async function clockIn(employee: string, selectedTime: string, location: GeoLocation | null) {
+export async function clockIn(
+  employee: string,
+  selectedTime: string,
+  location: GeoLocation | null
+) {
   const now = new Date()
-  const today = now.toISOString().split("T")[0]
+  const today = now.toISOString().split('T')[0]
 
   try {
     // Check if there's already an entry for today
@@ -14,12 +22,15 @@ export async function clockIn(employee: string, selectedTime: string, location: 
     if (todayEntry) {
       // If already clocked in but not out, don't do anything
       if (todayEntry.clockIn && !todayEntry.clockOut) {
-        return { success: false, message: "Já registrou entrada hoje." }
+        return { success: false, message: 'Já registrou entrada hoje.' }
       }
 
       // If already completed today's entry (clockIn and clockOut), do nothing
       if (todayEntry.clockIn && todayEntry.clockOut) {
-        return { success: false, message: "Já registrou entrada e saída hoje." }
+        return {
+          success: false,
+          message: 'Já registrou entrada e saída hoje.',
+        }
       }
     }
 
@@ -47,15 +58,23 @@ export async function clockIn(employee: string, selectedTime: string, location: 
     // Save the entry (or update it)
     await saveTimeEntryFirebase(todayEntry)
 
-    return { success: true, message: "Entrada registrada com sucesso!", refresh: true }
+    return {
+      success: true,
+      message: 'Entrada registrada com sucesso!',
+      refresh: true,
+    }
   } catch (error) {
-    console.error("Error in clockIn:", error)
-    return { success: false, message: "Erro ao registrar entrada." }
+    console.error('Error in clockIn:', error)
+    return { success: false, message: 'Erro ao registrar entrada.' }
   }
 }
 
 // Clock out action (client-side version)
-export async function clockOut(employee: string, selectedTime: string, location: GeoLocation | null) {
+export async function clockOut(
+  employee: string,
+  selectedTime: string,
+  location: GeoLocation | null
+) {
   const now = new Date()
 
   try {
@@ -70,16 +89,22 @@ export async function clockOut(employee: string, selectedTime: string, location:
 
       await saveTimeEntryFirebase(todayEntry)
 
-      return { success: true, message: "Saída registrada com sucesso!", refresh: true }
+      return {
+        success: true,
+        message: 'Saída registrada com sucesso!',
+        refresh: true,
+      }
     }
 
     return {
       success: false,
-      message: todayEntry?.clockOut ? "Já registrou saída hoje." : "Precisa registrar entrada primeiro.",
+      message: todayEntry?.clockOut
+        ? 'Já registrou saída hoje.'
+        : 'Precisa registrar entrada primeiro.',
     }
   } catch (error) {
-    console.error("Error in clockOut:", error)
-    return { success: false, message: "Erro ao registrar saída." }
+    console.error('Error in clockOut:', error)
+    return { success: false, message: 'Erro ao registrar saída.' }
   }
 }
 
@@ -88,7 +113,7 @@ export async function getAllTimeEntries() {
   try {
     return await getAllTimeEntriesFirebase()
   } catch (error) {
-    console.error("Error getting all time entries:", error)
+    console.error('Error getting all time entries:', error)
     return []
   }
 }

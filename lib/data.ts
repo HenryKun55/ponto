@@ -1,12 +1,12 @@
-import fs from "fs"
-import path from "path"
-import type { TimeEntry } from "./types"
+import fs from 'fs'
+import path from 'path'
+import type { TimeEntry } from './types'
 
-const dataFilePath = path.join(process.cwd(), "data", "timeEntries.json")
+const dataFilePath = path.join(process.cwd(), 'data', 'timeEntries.json')
 
 // Ensure data directory exists
 export function ensureDataDir() {
-  const dir = path.join(process.cwd(), "data")
+  const dir = path.join(process.cwd(), 'data')
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true })
   }
@@ -19,7 +19,7 @@ export function ensureDataDir() {
 // Get all time entries
 export function getTimeEntries(): TimeEntry[] {
   ensureDataDir()
-  const data = fs.readFileSync(dataFilePath, "utf8")
+  const data = fs.readFileSync(dataFilePath, 'utf8')
   return JSON.parse(data)
 }
 
@@ -32,9 +32,13 @@ export function getEmployeeTimeEntries(employee: string): TimeEntry[] {
 // Get today's entry for an employee
 export function getTodayEntry(employee: string): TimeEntry | null {
   const entries = getTimeEntries()
-  const today = new Date().toISOString().split("T")[0]
+  const today = new Date().toISOString().split('T')[0]
 
-  return entries.find((entry) => entry.employee === employee && entry.date === today) || null
+  return (
+    entries.find(
+      (entry) => entry.employee === employee && entry.date === today
+    ) || null
+  )
 }
 
 // Save time entries

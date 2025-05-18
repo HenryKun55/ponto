@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',  // Configura para exportação estática
+  output: 'export', // Configura para exportação estática
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -12,6 +12,6 @@ const nextConfig = {
   },
   basePath: process.env.NODE_ENV === 'production' ? '/ponto' : '',
   assetPrefix: process.env.NODE_ENV === 'production' ? '/ponto/' : '',
-};
+}
 
-export default nextConfig;
+export default nextConfig

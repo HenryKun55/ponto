@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState } from 'react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface TimePickerProps {
   defaultValue?: string
@@ -15,8 +15,8 @@ interface TimePickerProps {
 export function TimePicker({ defaultValue, onChange, label }: TimePickerProps) {
   // Formatar a hora atual no formato HH:MM
   const now = new Date()
-  const hours = now.getHours().toString().padStart(2, "0")
-  const minutes = now.getMinutes().toString().padStart(2, "0")
+  const hours = now.getHours().toString().padStart(2, '0')
+  const minutes = now.getMinutes().toString().padStart(2, '0')
   const currentTime = `${hours}:${minutes}`
 
   const [time, setTime] = useState(defaultValue || currentTime)
@@ -29,8 +29,13 @@ export function TimePicker({ defaultValue, onChange, label }: TimePickerProps) {
   return (
     <div className="space-y-2">
       <Label htmlFor="time-picker">{label}</Label>
-      <Input id="time-picker" type="time" value={time} onChange={handleChange} className="w-full" />
+      <Input
+        id="time-picker"
+        type="time"
+        value={time}
+        onChange={handleChange}
+        className="w-full"
+      />
     </div>
   )
 }
-
