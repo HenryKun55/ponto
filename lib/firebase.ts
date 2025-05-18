@@ -10,6 +10,7 @@ import {
   limit,
   startAfter,
   Timestamp,
+  QueryConstraint,
 } from 'firebase/firestore'
 import {
   getFirestore,
@@ -72,9 +73,8 @@ export async function getAllTimeEntriesFilteredFirebase(
 ): Promise<TimeEntry[]> {
   const entriesCol = collection(db, 'timeEntries')
 
-  const constraints = []
+  const constraints: QueryConstraint[] = [orderBy('date', 'asc')]
 
-  // Se passar filtro, adiciona os where
   if (startDateStr) {
     constraints.push(where('date', '>=', startDateStr))
   }
@@ -83,13 +83,7 @@ export async function getAllTimeEntriesFilteredFirebase(
     constraints.push(where('date', '<=', endDateStr))
   }
 
-  // Sempre colocar orderBy após os where e no mesmo campo
-  constraints.push(orderBy('date', 'asc'))
-
-  // Monta a query
-  const q = query(entriesCol, ...constraints)
-
-  const entriesSnapshot = await getDocs(q)
+  const entriesSnapshot = await getDocs(query(entriesCol, ...constraints))
   return entriesSnapshot.docs.map((doc) => doc.data() as TimeEntry)
 }
 
