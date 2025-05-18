@@ -114,13 +114,13 @@ export default () => {
         </CardHeader>
         <CardContent className="p-6">
           <Tabs defaultValue="registros" className="w-full">
-            <div className="w-full flex justify-between">
+            <div className="w-full flex flex-wrap justify-between">
               <TabsList className="mb-4">
                 <TabsTrigger value="registros">Registros</TabsTrigger>
                 <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
                 <TabsTrigger value="localizacao">Localização</TabsTrigger>
               </TabsList>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">
                     Itens por página:
