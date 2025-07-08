@@ -13,7 +13,7 @@ import {
 import { DateRange } from 'react-day-picker'
 
 type QuickDateRangeSelectorProps = {
-  onSelectRange: (range: DateRange) => void
+  onSelectRange: (range: DateRange | undefined) => void
 }
 
 export const QuickDateRangeSelector = ({
@@ -73,6 +73,13 @@ export const QuickDateRangeSelector = ({
 
   return (
     <div className="flex flex-col gap-2">
+      <Button
+        variant="ghost"
+        className="justify-start text-left text-sm font-semibold text-red-500"
+        onClick={() => onSelectRange(undefined)}
+      >
+        Limpar seleção
+      </Button>
       {quickRanges.map((q) => (
         <Button
           key={q.label}
