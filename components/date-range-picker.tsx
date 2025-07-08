@@ -10,16 +10,14 @@ import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DateRange } from 'react-day-picker'
+import { QuickDateRangeSelector } from './ui/quick-date-range-selector'
 
 type DateRangePickerProps = {
   date: DateRange | undefined
   setDate: (date: DateRange | undefined) => void
 }
 
-export const DateRangePicker: React.FC<DateRangePickerProps> = ({
-  date,
-  setDate,
-}) => {
+export const DateRangePicker = ({ date, setDate }: DateRangePickerProps) => {
   const [open, setOpen] = useState(false)
   const [internalDate, setInternalDate] = useState<DateRange | undefined>(date)
 
@@ -56,13 +54,25 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          initialFocus
-          mode="range"
-          selected={internalDate}
-          onSelect={setInternalDate}
-          numberOfMonths={2}
-        />
+        <div className="flex gap-4">
+          <div className="p-2">
+            <QuickDateRangeSelector
+              onSelectRange={(range) => {
+                setInternalDate(range)
+                setDate(range)
+                setOpen(false)
+              }}
+            />
+          </div>
+          <Calendar
+            initialFocus
+            mode="range"
+            selected={internalDate}
+            onSelect={setInternalDate}
+            numberOfMonths={2}
+            toDate={new Date()}
+          />
+        </div>
       </PopoverContent>
     </Popover>
   )
