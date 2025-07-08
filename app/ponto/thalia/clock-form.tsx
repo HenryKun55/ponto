@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { clockIn, clockOut } from '@/lib/actions'
 import { TimePicker } from './time-picker'
 import { Card } from '@/components/ui/card'
 import { getGeoLocation } from '@/lib/geo-service'
+import { useClockIn, useClockOut } from '@/hooks/use-time-record'
 
 interface ClockFormProps {
   employee: string
@@ -22,6 +22,9 @@ export function ClockForm({
   const [showTimePicker, setShowTimePicker] = useState(false)
   const [selectedTime, setSelectedTime] = useState('')
   const [actionType, setActionType] = useState<'in' | 'out' | null>(null)
+
+  const { mutateAsync: mutateAsyncClockIn } = useClockIn()
+  const { mutateAsync: mutateAsyncClockOut } = useClockOut()
 
   const handleClockIn = async () => {
     setActionType('in')
@@ -57,11 +60,18 @@ export function ClockForm({
         0
       )
 
+      // Input
+      const input = {
+        employee,
+        selectedTime: selectedDateTime.toISOString(),
+        location,
+      }
+
       // Registrar ponto
       const result =
         actionType === 'in'
-          ? await clockIn(employee, selectedDateTime.toISOString(), location)
-          : await clockOut(employee, selectedDateTime.toISOString(), location)
+          ? await mutateAsyncClockIn(input)
+          : await mutateAsyncClockOut(input)
 
       // Recarregar a página se a ação foi bem-sucedida
       if (result.success && result.refresh) {

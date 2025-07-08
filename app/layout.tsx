@@ -2,13 +2,13 @@ import type React from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import '../styles/globals.css'
+import { Providers } from '@/components/providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sistema de Ponto',
+  title: 'Ponto Fácil',
   description: 'Sistema de registro de ponto',
-  generator: 'v0.dev',
 }
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body suppressHydrationWarning className={inter.className}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

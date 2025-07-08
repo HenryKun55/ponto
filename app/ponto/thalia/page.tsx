@@ -83,7 +83,7 @@ export default function ThaliaPonto() {
         </CardContent>
         <CardFooter className="flex justify-center border-t p-4">
           <p className="text-sm text-muted-foreground">
-            Sistema de Ponto - {formatDate(new Date().toISOString())}
+            Ponto Fácil - {formatDate(new Date().toISOString())}
           </p>
         </CardFooter>
       </Card>
