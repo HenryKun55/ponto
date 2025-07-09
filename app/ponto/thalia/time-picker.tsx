@@ -2,17 +2,23 @@
 
 import type React from 'react'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 interface TimePickerProps {
-  defaultValue?: string
-  onChange: (time: string) => void
   label: string
+  isOpen: boolean
+  onChangeAction: (time: string) => void
+  defaultValue?: string
 }
 
-export function TimePicker({ defaultValue, onChange, label }: TimePickerProps) {
+export function TimePicker({
+  label,
+  isOpen,
+  onChangeAction,
+  defaultValue,
+}: TimePickerProps) {
   // Formatar a hora atual no formato HH:MM
   const now = new Date()
   const hours = now.getHours().toString().padStart(2, '0')
@@ -23,8 +29,15 @@ export function TimePicker({ defaultValue, onChange, label }: TimePickerProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTime(e.target.value)
-    onChange(e.target.value)
+    onChangeAction(e.target.value)
   }
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    setTime(currentTime)
+    onChangeAction(currentTime)
+  }, [isOpen])
 
   return (
     <div className="space-y-2">

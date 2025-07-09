@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { TimePicker } from './time-picker'
 import { Card } from '@/components/ui/card'
@@ -60,23 +61,19 @@ export function ClockForm({
         0
       )
 
-      // Input
       const input = {
         employee,
         selectedTime: selectedDateTime.toISOString(),
         location,
       }
 
-      // Registrar ponto
-      const result =
-        actionType === 'in'
-          ? await mutateAsyncClockIn(input)
-          : await mutateAsyncClockOut(input)
+      actionType === 'in'
+        ? await mutateAsyncClockIn(input)
+        : await mutateAsyncClockOut(input)
 
-      // Recarregar a página se a ação foi bem-sucedida
-      if (result.success && result.refresh) {
-        window.location.reload()
-      }
+      toast.success(
+        `Ponto de ${actionType === 'in' ? 'entrada' : 'saída'} registrado para ${employee}`
+      )
     } catch (error) {
       console.error('Erro ao registrar ponto', error)
     } finally {
@@ -115,7 +112,8 @@ export function ClockForm({
         <Card className="p-4">
           <TimePicker
             label={`Selecione o horário de ${actionType === 'in' ? 'entrada' : 'saída'}`}
-            onChange={setSelectedTime}
+            isOpen={showTimePicker}
+            onChangeAction={setSelectedTime}
           />
           <div className="flex justify-between mt-4">
             <Button

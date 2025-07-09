@@ -50,7 +50,10 @@ const timeRecordApi = {
       }) => {
         return await clockIn(employee, selectedTime, location)
       },
-      onSuccess: () => {
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries({
+          queryKey: timeRecordKeys.fetchTodayEntry(variables.employee),
+        })
         queryClient.invalidateQueries({ queryKey: timeRecordKeys.fetchAll() })
       },
     }),
@@ -68,7 +71,10 @@ const timeRecordApi = {
       }) => {
         return await clockOut(employee, selectedTime, location)
       },
-      onSuccess: () => {
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries({
+          queryKey: timeRecordKeys.fetchTodayEntry(variables.employee),
+        })
         queryClient.invalidateQueries({ queryKey: timeRecordKeys.fetchAll() })
       },
     }),

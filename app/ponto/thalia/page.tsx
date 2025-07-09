@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { getTodayEntryFirebase } from '@/lib/firebase'
+import { formatDate, formatTime } from '@/lib/utils'
+import { ClockForm } from './clock-form'
 import {
   Card,
   CardContent,
@@ -10,37 +10,30 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { formatDate, formatTime } from '@/lib/utils'
-import { ClockForm } from './clock-form'
-import type { TimeEntry } from '@/lib/types'
+import { useFetchTodayEntry } from '@/hooks/use-time-record'
 
 export default function ThaliaPonto() {
   const employee = 'thalia'
-  const [todayEntry, setTodayEntry] = useState<TimeEntry | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const entry = await getTodayEntryFirebase(employee)
-        setTodayEntry(entry)
-      } catch (error) {
-        console.error("Error fetching today's entry:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [employee])
-
+  const { data: todayEntry, isLoading, error } = useFetchTodayEntry(employee)
   const today = new Date().toLocaleDateString('pt-BR')
 
-  if (loading) {
+  if (isLoading) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-secondary">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">Carregando...</CardContent>
+        </Card>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-secondary">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center text-red-500">
+            Erro ao carregar dados.
+          </CardContent>
         </Card>
       </main>
     )
