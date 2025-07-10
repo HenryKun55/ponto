@@ -8,7 +8,7 @@ export default function Home() {
         <h1 className="text-2xl font-bold text-center text-primary mb-6">
           Sistema de Ponto
         </h1>
-        <div className="space-y-4">
+        <div className="gap-2 flex flex-col">
           <Link href="/ponto/thalia" className="w-full">
             <Button className="w-full">Área da Funcionária</Button>
           </Link>

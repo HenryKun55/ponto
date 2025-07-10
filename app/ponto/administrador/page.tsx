@@ -2,10 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { useEffect, useState } from 'react'
-import {
-  getAllTimeEntriesFilteredFirebase,
-  getAllTimeEntriesFirebase,
-} from '@/lib/firebase'
+import { getAllTimeEntriesFilteredFirebase } from '@/lib/firebase'
 import {
   Card,
   CardContent,
@@ -33,6 +30,8 @@ import { RenderTabContent } from '@/components/administrador/RenderTabComponent'
 import { DateRangePicker } from '@/components/date-range-picker'
 import { DateRange } from 'react-day-picker'
 import { format } from 'date-fns'
+import { TabsContent } from '@radix-ui/react-tabs'
+import { DashboardRecords } from '@/components/administrador/Dashboard/DashboardRecords'
 
 export default () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([])
@@ -113,9 +112,10 @@ export default () => {
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <Tabs defaultValue="registros" className="w-full">
-            <div className="w-full flex flex-wrap justify-between">
-              <TabsList className="mb-4">
+          <Tabs defaultValue="dashboard" className="w-full">
+            <div className="pb-2 gap-2 w-full flex flex-wrap justify-between">
+              <TabsList>
+                <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                 <TabsTrigger value="registros">Registros</TabsTrigger>
                 <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
                 <TabsTrigger value="localizacao">Localização</TabsTrigger>
@@ -152,6 +152,10 @@ export default () => {
                 <DateRangePicker date={dateRange} setDate={setDateRange} />
               </div>
             </div>
+
+            <TabsContent value="dashboard">
+              <DashboardRecords dateRange={dateRange} />
+            </TabsContent>
 
             <RenderTabContent
               value="registros"
