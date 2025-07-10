@@ -159,6 +159,21 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
     return 'Dashboard - Thalia'
   }
 
+  const getDynamicYAxisDomain = () => {
+    if (validRecords.length === 0) return [0, 10]
+
+    const minHours = Math.min(...validRecords.map((r) => r.hours))
+    const maxHours = Math.max(...validRecords.map((r) => r.hours))
+
+    // Adiciona uma pequena margem para melhor visualização
+    const padding = (maxHours - minHours) * 0.1 || 0.5 // Se todos os valores forem iguais, usa padding fixo
+
+    return [
+      Math.max(0, minHours - padding), // Não deixa valores negativos
+      maxHours + padding,
+    ]
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -263,10 +278,10 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
           </CardHeader>
           <CardContent>
             {validRecords.length > 0 ? (
-              <ResponsiveContainer width="100%" height={350}>
+              <ResponsiveContainer width="100%" height={450}>
                 <BarChart
                   data={validRecords}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                 >
                   <XAxis
                     dataKey="date"
@@ -277,6 +292,7 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
                     height={60}
                   />
                   <YAxis
+                    domain={getDynamicYAxisDomain()}
                     label={{
                       value: 'Horas',
                       angle: -90,
@@ -370,6 +386,7 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
                   interval="preserveStartEnd"
                 />
                 <YAxis
+                  domain={getDynamicYAxisDomain()}
                   label={{
                     value: 'Horas',
                     angle: -90,

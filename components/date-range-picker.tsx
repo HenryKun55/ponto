@@ -23,10 +23,20 @@ export const DateRangePicker = ({ date, setDate }: DateRangePickerProps) => {
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen)
-
     if (!isOpen) {
       setDate(internalDate)
     }
+  }
+
+  const getDefaultMonth = () => {
+    if (date?.from && date?.to) {
+      const midTime = (date.from.getTime() + date.to.getTime()) / 2
+      return new Date(midTime)
+    }
+    if (date?.from) {
+      return date.from
+    }
+    return new Date()
   }
 
   const displayedDate = open ? internalDate : date
@@ -71,6 +81,7 @@ export const DateRangePicker = ({ date, setDate }: DateRangePickerProps) => {
             onSelect={setInternalDate}
             numberOfMonths={2}
             toDate={new Date()}
+            defaultMonth={getDefaultMonth()}
           />
         </div>
       </PopoverContent>

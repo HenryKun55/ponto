@@ -32,6 +32,7 @@ import { DateRange } from 'react-day-picker'
 import { format } from 'date-fns'
 import { TabsContent } from '@radix-ui/react-tabs'
 import { DashboardRecords } from '@/components/administrador/Dashboard/DashboardRecords'
+import { ModeToggle } from '@/components/mode-toggle'
 
 export default () => {
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([])
@@ -101,14 +102,17 @@ export default () => {
     <main className="flex min-h-screen flex-col p-6 bg-secondary">
       <Card className="w-full">
         <CardHeader className="bg-primary text-white">
-          <div className="flex justify-between items-center">
-            <div>
+          <div className="flex items-center">
+            <div className="mr-auto">
               <CardTitle>Painel Administrativo</CardTitle>
               <CardDescription className="text-white/90">
                 Registros de Ponto
               </CardDescription>
             </div>
-            <ExportButton entries={timeEntries} />
+            <div className="gap-4 flex">
+              <ExportButton entries={timeEntries} />
+              <ModeToggle />
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-6">
