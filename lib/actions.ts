@@ -13,69 +13,81 @@ import {
   where,
 } from 'firebase/firestore'
 import {
-  getTodayEntryFirebase,
   saveTimeEntryFirebase,
   getAllTimeEntriesFirebase,
   db,
 } from './firebase'
-import type { GeoLocation, TimeEntry } from './types'
+import { GeoLocation, Period, TimeEntry } from './types'
 
-// Clock in action (client-side version)
-export async function clockIn(
+const determinePeriod = (selectedTime: string): Period => {
+  const [hours] = selectedTime.split(':')
+  const hour = Number.parseInt(hours)
+
+  return hour < 13 ? Period.MORNING : Period.AFTERNOON
+}
+
+export const clockIn = async (
   employee: string,
   selectedTime: string,
-  location: GeoLocation | null
-) {
+  location: GeoLocation | null,
+  todayEntry: TimeEntry | null | undefined
+) => {
   const now = new Date()
   const today = now.toISOString().split('T')[0]
+  const period = determinePeriod(selectedTime)
 
   try {
-    // Check if there's already an entry for today
-    let todayEntry = await getTodayEntryFirebase(employee)
-
-    if (todayEntry) {
-      // If already clocked in but not out, don't do anything
-      if (todayEntry.clockIn && !todayEntry.clockOut) {
-        return { success: false, message: 'Já registrou entrada hoje.' }
-      }
-
-      // If already completed today's entry (clockIn and clockOut), do nothing
-      if (todayEntry.clockIn && todayEntry.clockOut) {
-        return {
-          success: false,
-          message: 'Já registrou entrada e saída hoje.',
-        }
-      }
-    }
-
     if (!todayEntry) {
-      // Create a new entry if no entry exists for today
       todayEntry = {
         id: `${employee}-${Date.now()}`,
         employee,
         date: today,
-        clockIn: selectedTime,
-        clockOut: null,
-        realClockInTime: now.toISOString(),
-        realClockOutTime: null,
-        clockInLocation: location,
-        clockOutLocation: null,
+        morningClockIn: null,
+        morningClockOut: null,
+        morningClockInLocation: null,
+        morningClockOutLocation: null,
+        realMorningClockInTime: null,
+        realMorningClockOutTime: null,
+        afternoonClockIn: null,
+        afternoonClockOut: null,
+        afternoonClockInLocation: null,
+        afternoonClockOutLocation: null,
+        realAfternoonClockInTime: null,
+        realAfternoonClockOutTime: null,
         createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
       }
-    } else {
-      // Update the entry with clockIn if it already exists
-      todayEntry.clockIn = selectedTime
-      todayEntry.realClockInTime = now.toISOString()
-      todayEntry.clockInLocation = location
     }
 
-    // Save the entry (or update it)
+    if (period === Period.MORNING) {
+      if (todayEntry.morningClockIn && !todayEntry.morningClockOut) {
+        return { success: false, message: 'Já registrou entrada da manhã.' }
+      }
+      if (todayEntry.morningClockIn && todayEntry.morningClockOut) {
+        return { success: false, message: 'Período da manhã já finalizado.' }
+      }
+
+      todayEntry.morningClockIn = selectedTime
+      todayEntry.realMorningClockInTime = now.toISOString()
+      todayEntry.morningClockInLocation = location
+    } else {
+      if (todayEntry.afternoonClockIn && !todayEntry.afternoonClockOut) {
+        return { success: false, message: 'Já registrou entrada da tarde.' }
+      }
+      if (todayEntry.afternoonClockIn && todayEntry.afternoonClockOut) {
+        return { success: false, message: 'Período da tarde já finalizado.' }
+      }
+
+      todayEntry.afternoonClockIn = selectedTime
+      todayEntry.realAfternoonClockInTime = now.toISOString()
+      todayEntry.afternoonClockInLocation = location
+    }
+
+    todayEntry.updatedAt = now.toISOString()
     await saveTimeEntryFirebase(todayEntry)
 
     return {
       success: true,
-      message: 'Entrada registrada com sucesso!',
-      refresh: true,
     }
   } catch (error) {
     console.error('Error in clockIn:', error)
@@ -83,38 +95,63 @@ export async function clockIn(
   }
 }
 
-// Clock out action (client-side version)
-export async function clockOut(
-  employee: string,
+export const clockOut = async (
   selectedTime: string,
-  location: GeoLocation | null
-) {
+  location: GeoLocation | null,
+  todayEntry: TimeEntry | null | undefined
+) => {
   const now = new Date()
+  const period = determinePeriod(selectedTime)
 
   try {
-    // Check if there's an entry for today
-    const todayEntry = await getTodayEntryFirebase(employee)
-
-    if (todayEntry && todayEntry.clockIn && !todayEntry.clockOut) {
-      // Update the entry with clock out time
-      todayEntry.clockOut = selectedTime
-      todayEntry.realClockOutTime = now.toISOString()
-      todayEntry.clockOutLocation = location
-
-      await saveTimeEntryFirebase(todayEntry)
-
+    if (!todayEntry) {
       return {
-        success: true,
-        message: 'Saída registrada com sucesso!',
-        refresh: true,
+        success: false,
+        message: 'Nenhum registro encontrado para hoje.',
       }
     }
 
+    if (period === Period.MORNING) {
+      if (!todayEntry.morningClockIn) {
+        return {
+          success: false,
+          message: 'Precisa registrar entrada da manhã primeiro.',
+        }
+      }
+      if (todayEntry.morningClockOut) {
+        return {
+          success: false,
+          message: 'Já registrou saída da manhã.',
+        }
+      }
+
+      todayEntry.morningClockOut = selectedTime
+      todayEntry.realMorningClockOutTime = now.toISOString()
+      todayEntry.morningClockOutLocation = location
+    } else {
+      if (!todayEntry.afternoonClockIn) {
+        return {
+          success: false,
+          message: 'Precisa registrar entrada da tarde primeiro.',
+        }
+      }
+      if (todayEntry.afternoonClockOut) {
+        return {
+          success: false,
+          message: 'Já registrou saída da tarde.',
+        }
+      }
+
+      todayEntry.afternoonClockOut = selectedTime
+      todayEntry.realAfternoonClockOutTime = now.toISOString()
+      todayEntry.afternoonClockOutLocation = location
+    }
+
+    todayEntry.updatedAt = now.toISOString()
+    await saveTimeEntryFirebase(todayEntry)
+
     return {
-      success: false,
-      message: todayEntry?.clockOut
-        ? 'Já registrou saída hoje.'
-        : 'Precisa registrar entrada primeiro.',
+      success: true,
     }
   } catch (error) {
     console.error('Error in clockOut:', error)
@@ -122,8 +159,7 @@ export async function clockOut(
   }
 }
 
-// Get all time entries for admin
-export async function getAllTimeEntries() {
+export const getAllTimeEntries = async () => {
   try {
     return await getAllTimeEntriesFirebase()
   } catch (error) {
@@ -132,10 +168,10 @@ export async function getAllTimeEntries() {
   }
 }
 
-export async function getAllTimeEntriesFiltered(
+export const getAllTimeEntriesFiltered = async (
   startDateStr?: string,
   endDateStr?: string
-): Promise<TimeEntry[]> {
+) => {
   const entriesCol = collection(db, 'timeEntries')
 
   const constraints: QueryConstraint[] = [orderBy('date', 'asc')]
@@ -154,9 +190,7 @@ export async function getAllTimeEntriesFiltered(
   )
 }
 
-export async function getEmployeeTimeEntries(
-  employee: string
-): Promise<TimeEntry[]> {
+export const getEmployeeTimeEntries = async (employee: string) => {
   const entriesCol = collection(db, 'timeEntries')
   const q = query(
     entriesCol,
@@ -169,9 +203,7 @@ export async function getEmployeeTimeEntries(
   )
 }
 
-export async function getTodayEntry(
-  employee: string
-): Promise<TimeEntry | null> {
+export const getTodayEntry = async (employee: string) => {
   const today = new Date().toISOString().split('T')[0]
   const entriesCol = collection(db, 'timeEntries')
   const q = query(
@@ -190,7 +222,7 @@ export async function getTodayEntry(
   return { id: lastEntry.id, ...lastEntry.data() } as TimeEntry
 }
 
-export async function saveTimeEntry(entry: TimeEntry): Promise<void> {
+export const saveTimeEntry = async (entry: TimeEntry) => {
   const entryRef = doc(db, 'timeEntries', entry.id)
 
   const docSnapshot = await getDoc(entryRef)

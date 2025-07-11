@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -7,18 +6,46 @@ import { TimePicker } from './time-picker'
 import { Card } from '@/components/ui/card'
 import { getGeoLocation } from '@/lib/geo-service'
 import { useClockIn, useClockOut } from '@/hooks/use-time-record'
+import { TimeEntry } from '@/lib/types'
 
-interface ClockFormProps {
+type ClockFormProps = {
   employee: string
-  hasClockIn: boolean
-  hasClockOut: boolean
+  todayEntry: TimeEntry | null | undefined
 }
 
-export function ClockForm({
-  employee,
-  hasClockIn,
-  hasClockOut,
-}: ClockFormProps) {
+const getCurrentPeriod = () => {
+  const now = new Date()
+  const hour = now.getHours()
+  return hour < 13 ? 'morning' : 'afternoon'
+}
+
+const canClockIn = (
+  todayEntry: TimeEntry | null | undefined,
+  period: 'morning' | 'afternoon'
+) => {
+  if (!todayEntry) return true
+
+  if (period === 'morning') {
+    return !todayEntry.morningClockIn
+  } else {
+    return !todayEntry.afternoonClockIn
+  }
+}
+
+const canClockOut = (
+  todayEntry: TimeEntry | null | undefined,
+  period: 'morning' | 'afternoon'
+) => {
+  if (!todayEntry) return false
+
+  if (period === 'morning') {
+    return Boolean(todayEntry.morningClockIn && !todayEntry.morningClockOut)
+  } else {
+    return Boolean(todayEntry.afternoonClockIn && !todayEntry.afternoonClockOut)
+  }
+}
+
+export const ClockForm = ({ employee, todayEntry }: ClockFormProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [showTimePicker, setShowTimePicker] = useState(false)
   const [selectedTime, setSelectedTime] = useState('')
@@ -26,6 +53,10 @@ export function ClockForm({
 
   const { mutateAsync: mutateAsyncClockIn } = useClockIn()
   const { mutateAsync: mutateAsyncClockOut } = useClockOut()
+
+  const currentPeriod = getCurrentPeriod()
+  const canRegisterIn = canClockIn(todayEntry, currentPeriod)
+  const canRegisterOut = canClockOut(todayEntry, currentPeriod)
 
   const handleClockIn = async () => {
     setActionType('in')
@@ -42,7 +73,6 @@ export function ClockForm({
 
     setIsLoading(true)
     try {
-      // Obter localização da API
       let location = null
       try {
         location = await getGeoLocation()
@@ -50,7 +80,6 @@ export function ClockForm({
         console.error('Erro ao obter localização:', error)
       }
 
-      // Criar data completa a partir da data atual e hora selecionada
       const today = new Date().toISOString().split('T')[0]
       const [hours, minutes] = selectedTime.split(':')
       const selectedDateTime = new Date(today)
@@ -65,14 +94,18 @@ export function ClockForm({
         employee,
         selectedTime: selectedDateTime.toISOString(),
         location,
+        todayEntry,
       }
 
       actionType === 'in'
         ? await mutateAsyncClockIn(input)
         : await mutateAsyncClockOut(input)
 
+      const periodName = currentPeriod === 'morning' ? 'manhã' : 'tarde'
+      const actionName = actionType === 'in' ? 'entrada' : 'saída'
+
       toast.success(
-        `Ponto de ${actionType === 'in' ? 'entrada' : 'saída'} registrado para ${employee}`
+        `Ponto de ${actionName} da ${periodName} registrado para ${employee}`
       )
     } catch (error) {
       console.error('Erro ao registrar ponto', error)
@@ -88,30 +121,42 @@ export function ClockForm({
     setActionType(null)
   }
 
+  const getPeriodLabel = () => {
+    return currentPeriod === 'morning' ? 'Manhã' : 'Tarde'
+  }
+
   return (
     <>
       {!showTimePicker ? (
         <div className="flex flex-col space-y-4">
+          <div className="text-center mb-2">
+            <p className="text-sm text-muted-foreground">
+              Período atual:{' '}
+              <span className="font-medium">{getPeriodLabel()}</span>
+            </p>
+          </div>
+
           <Button
             onClick={handleClockIn}
-            disabled={isLoading || hasClockIn}
+            disabled={isLoading || !canRegisterIn}
             className="bg-primary hover:bg-primary/90"
           >
-            Registrar Entrada
+            Registrar Entrada - {getPeriodLabel()}
           </Button>
+
           <Button
             onClick={handleClockOut}
-            disabled={isLoading || hasClockOut}
+            disabled={isLoading || !canRegisterOut}
             variant="outline"
             className="border-primary text-primary hover:bg-primary/10"
           >
-            Registrar Saída
+            Registrar Saída - {getPeriodLabel()}
           </Button>
         </div>
       ) : (
         <Card className="p-4">
           <TimePicker
-            label={`Selecione o horário de ${actionType === 'in' ? 'entrada' : 'saída'}`}
+            label={`Selecione o horário de ${actionType === 'in' ? 'entrada' : 'saída'} - ${getPeriodLabel()}`}
             isOpen={showTimePicker}
             onChangeAction={setSelectedTime}
           />

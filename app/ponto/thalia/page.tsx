@@ -15,6 +15,8 @@ import { useFetchTodayEntry } from '@/hooks/use-time-record'
 export default function ThaliaPonto() {
   const employee = 'thalia'
   const { data: todayEntry, isLoading, error } = useFetchTodayEntry(employee)
+  console.log({ todayEntry })
+
   const today = new Date().toLocaleDateString('pt-BR')
 
   if (isLoading) {
@@ -53,26 +55,57 @@ export default function ThaliaPonto() {
             <p className="text-lg font-medium">Hoje: {today}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-secondary p-4 rounded-lg text-center">
-              <p className="text-sm text-muted-foreground">Entrada</p>
-              <p className="text-lg font-medium">
-                {todayEntry?.clockIn ? formatTime(todayEntry.clockIn) : '-'}
-              </p>
-            </div>
-            <div className="bg-secondary p-4 rounded-lg text-center">
-              <p className="text-sm text-muted-foreground">Saída</p>
-              <p className="text-lg font-medium">
-                {todayEntry?.clockOut ? formatTime(todayEntry.clockOut) : '-'}
-              </p>
+          {/* Período da Manhã */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2 text-center">
+              Período da Manhã
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-secondary p-4 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground">Entrada</p>
+                <p className="text-lg font-medium">
+                  {todayEntry?.morningClockIn
+                    ? formatTime(todayEntry.morningClockIn)
+                    : '-'}
+                </p>
+              </div>
+              <div className="bg-secondary p-4 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground">Saída</p>
+                <p className="text-lg font-medium">
+                  {todayEntry?.morningClockOut
+                    ? formatTime(todayEntry.morningClockOut)
+                    : '-'}
+                </p>
+              </div>
             </div>
           </div>
 
-          <ClockForm
-            employee={employee}
-            hasClockIn={!!todayEntry?.clockIn}
-            hasClockOut={!!todayEntry?.clockOut}
-          />
+          {/* Período da Tarde */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2 text-center">
+              Período da Tarde
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-secondary p-4 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground">Entrada</p>
+                <p className="text-lg font-medium">
+                  {todayEntry?.afternoonClockIn
+                    ? formatTime(todayEntry.afternoonClockIn)
+                    : '-'}
+                </p>
+              </div>
+              <div className="bg-secondary p-4 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground">Saída</p>
+                <p className="text-lg font-medium">
+                  {todayEntry?.afternoonClockOut
+                    ? formatTime(todayEntry.afternoonClockOut)
+                    : '-'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <ClockForm employee={employee} todayEntry={todayEntry} />
         </CardContent>
         <CardFooter className="flex justify-center border-t p-4">
           <p className="text-sm text-muted-foreground">

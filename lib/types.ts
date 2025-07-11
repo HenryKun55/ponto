@@ -2,13 +2,20 @@ export type TimeEntry = {
   id: string
   employee: string
   date: string
-  clockIn: string | null
-  clockOut: string | null
-  clockInLocation: GeoLocation | null
-  clockOutLocation: GeoLocation | null
+  morningClockIn: string | null
+  morningClockOut: string | null
+  morningClockInLocation: GeoLocation | null
+  morningClockOutLocation: GeoLocation | null
+  realMorningClockInTime: string | null
+  realMorningClockOutTime: string | null
+  afternoonClockIn: string | null
+  afternoonClockOut: string | null
+  afternoonClockInLocation: GeoLocation | null
+  afternoonClockOutLocation: GeoLocation | null
+  realAfternoonClockInTime: string | null
+  realAfternoonClockOutTime: string | null
   createdAt: string
-  realClockInTime: string | null
-  realClockOutTime: string | null
+  updatedAt: string
 }
 
 export type GeoLocation = {
@@ -48,4 +55,14 @@ export type GeoLocation = {
     utc: string
     current_time: string
   }
+}
+
+export enum Period {
+  MORNING = 'morning',
+  AFTERNOON = 'afternoon',
+}
+
+export enum ActionType {
+  CLOCK_IN = 'in',
+  CLOCK_OUT = 'out',
 }

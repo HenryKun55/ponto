@@ -35,14 +35,7 @@ const timeRecordApi = {
     useQuery({
       queryKey: timeRecordKeys.fetchAll(),
       queryFn: () => getAllTimeEntries(),
-      // Cache por 5 minutos
-      staleTime: 5 * 60 * 1000,
-      // Manter no cache por 10 minutos mesmo sem usar
-      gcTime: 10 * 60 * 1000,
-      // Refetch em background quando a janela ganha foco
       refetchOnWindowFocus: true,
-      // Retry 3 vezes em caso de erro
-      retry: 3,
     }),
 
   useClockIn: () =>
@@ -51,21 +44,32 @@ const timeRecordApi = {
         employee,
         selectedTime,
         location,
+        todayEntry,
       }: {
         employee: string
         selectedTime: string
         location: GeoLocation | null
+        todayEntry: TimeEntry | null | undefined
       }) => {
-        return await clockIn(employee, selectedTime, location)
+        const result = await clockIn(
+          employee,
+          selectedTime,
+          location,
+          todayEntry
+        )
+        if (!result.success) {
+          throw new Error(result.message)
+        }
+        return result
       },
       onSuccess: (_, variables) => {
-        // Invalidar queries específicas
         queryClient.invalidateQueries({
           queryKey: timeRecordKeys.fetchTodayEntry(variables.employee),
         })
         queryClient.invalidateQueries({ queryKey: timeRecordKeys.fetchAll() })
-
-        // Invalidar queries filtradas que podem incluir hoje
+        queryClient.invalidateQueries({
+          queryKey: timeRecordKeys.fetchEmployee(variables.employee),
+        })
         queryClient.invalidateQueries({
           queryKey: timeRecordKeys.all,
           predicate: (query) => {
@@ -73,37 +77,50 @@ const timeRecordApi = {
           },
         })
       },
-      // Retry automático em caso de falha
+      onError: (error) => {
+        console.error('Erro no clock in:', error)
+      },
       retry: 2,
     }),
 
   useClockOut: () =>
     useMutation({
       mutationFn: async ({
-        employee,
         selectedTime,
         location,
+        todayEntry,
       }: {
         employee: string
         selectedTime: string
         location: GeoLocation | null
+        todayEntry: TimeEntry | null | undefined
       }) => {
-        return await clockOut(employee, selectedTime, location)
+        const result = await clockOut(selectedTime, location, todayEntry)
+        if (!result.success) {
+          throw new Error(result.message)
+        }
+        return result
       },
       onSuccess: (_, variables) => {
-        // Invalidar queries específicas
-        queryClient.invalidateQueries({
+        queryClient.refetchQueries({
           queryKey: timeRecordKeys.fetchTodayEntry(variables.employee),
         })
-        queryClient.invalidateQueries({ queryKey: timeRecordKeys.fetchAll() })
-
-        // Invalidar queries filtradas que podem incluir hoje
-        queryClient.invalidateQueries({
-          queryKey: timeRecordKeys.all,
-          predicate: (query) => {
-            return query.queryKey[1] === 'fetchFiltered'
-          },
-        })
+        // queryClient.invalidateQueries({
+        //   queryKey: timeRecordKeys.fetchTodayEntry(variables.employee),
+        // })
+        // queryClient.invalidateQueries({ queryKey: timeRecordKeys.fetchAll() })
+        // queryClient.invalidateQueries({
+        //   queryKey: timeRecordKeys.fetchEmployee(variables.employee),
+        // })
+        // queryClient.invalidateQueries({
+        //   queryKey: timeRecordKeys.all,
+        //   predicate: (query) => {
+        //     return query.queryKey[1] === 'fetchFiltered'
+        //   },
+        // })
+      },
+      onError: (error) => {
+        console.error('Erro no clock out:', error)
       },
       retry: 2,
     }),
@@ -112,53 +129,32 @@ const timeRecordApi = {
     useQuery({
       queryKey: timeRecordKeys.fetchFiltered(startDate, endDate),
       queryFn: () => getAllTimeEntriesFiltered(startDate, endDate),
-      // Cache por mais tempo para dados históricos
-      staleTime: 10 * 60 * 1000, // 10 minutos
-      gcTime: 30 * 60 * 1000, // 30 minutos
-      // Não refetch automaticamente para dados históricos
-      refetchOnWindowFocus: false,
-      // Só executa se tiver as datas
-      enabled: !!(startDate && endDate),
-      retry: 3,
     }),
 
   useFetchEmployeeTimeEntries: (employee: string) =>
     useQuery({
       queryKey: timeRecordKeys.fetchEmployee(employee),
       queryFn: () => getEmployeeTimeEntries(employee),
-      staleTime: 5 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
-      // Só executa se tiver o employee
-      enabled: !!employee,
-      retry: 3,
     }),
 
   useFetchTodayEntry: (employee: string) =>
     useQuery({
       queryKey: timeRecordKeys.fetchTodayEntry(employee),
       queryFn: () => getTodayEntry(employee),
-      // Cache menor para dados do dia atual
-      staleTime: 1 * 60 * 1000, // 1 minuto
-      gcTime: 5 * 60 * 1000, // 5 minutos
-      // Refetch mais frequentemente
       refetchOnWindowFocus: true,
-      refetchInterval: 2 * 60 * 1000, // Refetch a cada 2 minutos
-      enabled: !!employee,
-      retry: 3,
     }),
 
   useSaveTimeEntry: () =>
     useMutation({
       mutationFn: (entry: TimeEntry) => saveTimeEntry(entry),
-      onSuccess: (data, variables) => {
-        // Invalidar todas as queries relacionadas
+      onSuccess: (_, variables) => {
         queryClient.invalidateQueries({ queryKey: timeRecordKeys.all })
-
-        // Opcionalmente, você pode fazer um update otimista
-        // queryClient.setQueryData(timeRecordKeys.fetchAll(), (old: TimeEntry[] | undefined) => {
-        //   if (!old) return [variables]
-        //   return [...old, variables]
-        // })
+        queryClient.invalidateQueries({
+          queryKey: timeRecordKeys.fetchTodayEntry(variables.employee),
+        })
+        queryClient.invalidateQueries({
+          queryKey: timeRecordKeys.fetchEmployee(variables.employee),
+        })
       },
       retry: 2,
     }),

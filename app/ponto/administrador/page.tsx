@@ -13,13 +13,6 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { generateTimeEntries } from '@/lib/mock'
 import { saveTimeEntryFirebase } from '@/lib/firebase'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { usePagination } from '@/hooks/use-pagination'
 import { ExportButton } from '@/components/administrador/ExportButton'
 import { TimeEntriesTable } from '@/components/administrador/TimeEntriesTable'
@@ -117,33 +110,17 @@ export default () => {
         </CardHeader>
         <CardContent className="p-6">
           <Tabs defaultValue="dashboard" className="w-full">
-            <div className="pb-2 gap-2 w-full flex flex-wrap justify-between">
-              <TabsList>
+            <div className="pb-4 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-wrap">
+              {/* Tabs */}
+              <TabsList className="flex flex-wrap h-fit">
                 <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                 <TabsTrigger value="registros">Registros</TabsTrigger>
                 <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
                 <TabsTrigger value="localizacao">Localização</TabsTrigger>
               </TabsList>
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">
-                    Itens por página:
-                  </span>
-                  <Select
-                    value={itemsPerPage.toString()}
-                    onValueChange={(value) => setItemsPerPage(Number(value))}
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue placeholder="10" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+
+              {/* Botões e DatePicker */}
+              <div className="flex flex-wrap gap-4 items-center justify-start sm:justify-end">
                 {process.env.NODE_ENV === 'development' && (
                   <Button
                     onClick={generateEntrysMockAndSaveTimeEntries}
@@ -152,7 +129,6 @@ export default () => {
                     {loadingMock ? 'Gerando...' : 'Gerar mock'}
                   </Button>
                 )}
-
                 <DateRangePicker date={dateRange} setDate={setDateRange} />
               </div>
             </div>
@@ -166,6 +142,8 @@ export default () => {
               Component={TimeEntriesTable}
               pagination={entriesPagination}
               totalCount={timeEntries.length}
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={setItemsPerPage}
             />
 
             <RenderTabContent
@@ -173,6 +151,8 @@ export default () => {
               Component={TimeEntriesDetailsTable}
               pagination={detailsPagination}
               totalCount={timeEntries.length}
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={setItemsPerPage}
             />
 
             <RenderTabContent
@@ -184,6 +164,8 @@ export default () => {
                   (entry) => entry.clockInLocation || entry.clockOutLocation
                 ).length
               }
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={setItemsPerPage}
             />
           </Tabs>
         </CardContent>
