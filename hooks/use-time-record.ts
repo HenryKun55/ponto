@@ -44,22 +44,14 @@ const timeRecordApi = {
         employee,
         selectedTime,
         location,
-        todayEntry,
         period,
       }: {
         employee: string
         selectedTime: string
         location: GeoLocation | null
-        todayEntry: TimeEntry | null | undefined
         period: 'morning' | 'afternoon'
       }) => {
-        const result = await clockIn(
-          employee,
-          selectedTime,
-          location,
-          todayEntry,
-          period
-        )
+        const result = await clockIn(employee, selectedTime, location, period)
         if (!result.success) {
           throw new Error(result.message)
         }
@@ -69,17 +61,6 @@ const timeRecordApi = {
         queryClient.invalidateQueries({
           queryKey: timeRecordKeys.fetchTodayEntry(variables.employee),
         })
-        queryClient.invalidateQueries({ queryKey: timeRecordKeys.fetchAll() })
-        queryClient.invalidateQueries({
-          queryKey: timeRecordKeys.fetchEmployee(variables.employee),
-        })
-        queryClient.invalidateQueries({
-          queryKey: timeRecordKeys.all,
-          predicate: (query) => {
-            return query.queryKey[1] === 'fetchFiltered'
-          },
-        })
-        window.location.reload()
       },
       onError: (error) => {
         console.error('Erro no clock in:', error)
@@ -90,23 +71,17 @@ const timeRecordApi = {
   useClockOut: () =>
     useMutation({
       mutationFn: async ({
+        employee,
         selectedTime,
         location,
-        todayEntry,
         period,
       }: {
         employee: string
         selectedTime: string
         location: GeoLocation | null
-        todayEntry: TimeEntry | null | undefined
         period: 'morning' | 'afternoon'
       }) => {
-        const result = await clockOut(
-          selectedTime,
-          location,
-          todayEntry,
-          period
-        )
+        const result = await clockOut(employee, selectedTime, location, period)
         if (!result.success) {
           throw new Error(result.message)
         }
@@ -116,17 +91,6 @@ const timeRecordApi = {
         queryClient.invalidateQueries({
           queryKey: timeRecordKeys.fetchTodayEntry(variables.employee),
         })
-        queryClient.invalidateQueries({ queryKey: timeRecordKeys.fetchAll() })
-        queryClient.invalidateQueries({
-          queryKey: timeRecordKeys.fetchEmployee(variables.employee),
-        })
-        queryClient.invalidateQueries({
-          queryKey: timeRecordKeys.all,
-          predicate: (query) => {
-            return query.queryKey[1] === 'fetchFiltered'
-          },
-        })
-        window.location.reload()
       },
       onError: (error) => {
         console.error('Erro no clock out:', error)

@@ -95,7 +95,6 @@ export const ClockForm = ({ employee, todayEntry }: ClockFormProps) => {
         employee,
         selectedTime: selectedDateTime.toISOString(),
         location,
-        todayEntry,
         period: currentPeriod,
       }
 
