@@ -41,7 +41,11 @@ export default () => {
   const detailsPagination = usePagination(timeEntries, itemsPerPage)
   const locationsPagination = usePagination(
     timeEntries.filter(
-      (entry) => entry.clockInLocation || entry.clockOutLocation
+      (entry) =>
+        entry.morningClockIn ||
+        entry.morningClockOut ||
+        entry.afternoonClockIn ||
+        entry.afternoonClockOut
     ),
     itemsPerPage
   )
@@ -161,7 +165,11 @@ export default () => {
               pagination={locationsPagination}
               totalCount={
                 timeEntries.filter(
-                  (entry) => entry.clockInLocation || entry.clockOutLocation
+                  (entry) =>
+                    entry.morningClockIn ||
+                    entry.morningClockOut ||
+                    entry.afternoonClockIn ||
+                    entry.afternoonClockOut
                 ).length
               }
               itemsPerPage={itemsPerPage}

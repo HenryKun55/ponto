@@ -1,18 +1,23 @@
 import type { TooltipProps } from 'recharts'
 
-interface PayloadItem {
+type ChartDataItem = {
+  date: string
+  fullDate: Date
+  hours: number
+  clockIn: string
+  clockOut: string
+}
+
+type PayloadItem = {
   value: number
-  payload: {
-    clockIn: string
-    clockOut: string
-    hours: number
-    date: string
-  }
+  payload: ChartDataItem
+  dataKey: string
+  color: string
 }
 
 const formatTime = (isoString: string) => {
   const date = new Date(isoString)
-  return date.toLocaleTimeString(undefined, {
+  return date.toLocaleTimeString('pt-BR', {
     hour: '2-digit',
     minute: '2-digit',
   })
@@ -29,22 +34,35 @@ export const CustomTooltip = ({
   payload,
   label,
 }: TooltipProps<number, string>) => {
-  if (active && payload && payload.length) {
+  if (active && payload && payload.length > 0) {
     const data = payload[0] as PayloadItem
 
+    // Verificar se temos os dados necessários
+    if (!data?.payload) {
+      return null
+    }
+
+    const { clockIn, clockOut, hours } = data.payload
+
     return (
-      <div
-        style={{
-          backgroundColor: 'white',
-          border: '1px solid #ccc',
-          padding: 8,
-          borderRadius: 4,
-        }}
-      >
-        <p>{`Data: ${label}`}</p>
-        <p>{`Entrada: ${formatTime(data.payload.clockIn)}`}</p>
-        <p>{`Saída: ${formatTime(data.payload.clockOut)}`}</p>
-        <p>{`Horas trabalhadas: ${formatHoursDecimal(data.payload.hours)}`}</p>
+      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+        <p className="font-semibold text-gray-800 mb-2">{`Data: ${label}`}</p>
+
+        {clockIn && (
+          <p className="text-sm text-gray-600 mb-1">
+            {`Primeira entrada: ${formatTime(clockIn)}`}
+          </p>
+        )}
+
+        {clockOut && (
+          <p className="text-sm text-gray-600 mb-1">
+            {`Última saída: ${formatTime(clockOut)}`}
+          </p>
+        )}
+
+        <p className="font-semibold text-blue-600 mt-2">
+          {`Total trabalhado: ${formatHoursDecimal(hours)}`}
+        </p>
       </div>
     )
   }

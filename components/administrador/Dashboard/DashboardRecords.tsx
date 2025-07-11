@@ -18,6 +18,7 @@ import { useFetchAllRecords } from '@/hooks/use-time-record'
 import { CustomTooltip } from './CustomTooltip'
 import { DateRange } from 'react-day-picker'
 import { Clock, Calendar, TrendingUp, User, Target } from 'lucide-react'
+import { TimeEntry } from '@/lib/types'
 
 type DashboardRecordsProps = {
   dateRange?: DateRange
@@ -27,25 +28,98 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
   const { data, isLoading } = useFetchAllRecords()
 
   const parseRecordDate = (dateString: string): Date => {
-    if (dateString.includes('/')) {
-      const [day, month, year] = dateString.split('/')
-      return new Date(+year, +month - 1, +day)
-    }
-    if (dateString.includes('-')) {
+    try {
+      if (dateString.includes('/')) {
+        const [day, month, year] = dateString.split('/')
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+      }
+      if (dateString.includes('-')) {
+        return new Date(dateString)
+      }
       return new Date(dateString)
+    } catch (error) {
+      console.error('Error parsing date:', dateString, error)
+      return new Date()
     }
-    return new Date(dateString)
+  }
+
+  const parseTimeString = (timeString: string): Date => {
+    try {
+      if (timeString.includes('T') || timeString.includes('Z')) {
+        return new Date(timeString)
+      }
+
+      if (timeString.includes(':')) {
+        const today = new Date()
+        const [hours, minutes] = timeString.split(':').map(Number)
+        return new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate(),
+          hours,
+          minutes
+        )
+      }
+
+      return new Date(timeString)
+    } catch (error) {
+      console.error('Error parsing time:', timeString, error)
+      return new Date()
+    }
+  }
+
+  const calculateDayHours = (record: TimeEntry): number => {
+    let totalHours = 0
+
+    try {
+      if (record.morningClockIn && record.morningClockOut) {
+        const morningIn = parseTimeString(record.morningClockIn)
+        const morningOut = parseTimeString(record.morningClockOut)
+        const morningDiff = morningOut.getTime() - morningIn.getTime()
+        if (morningDiff > 0) {
+          totalHours += morningDiff / (1000 * 60 * 60)
+        }
+      }
+
+      if (record.afternoonClockIn && record.afternoonClockOut) {
+        const afternoonIn = parseTimeString(record.afternoonClockIn)
+        const afternoonOut = parseTimeString(record.afternoonClockOut)
+        const afternoonDiff = afternoonOut.getTime() - afternoonIn.getTime()
+        if (afternoonDiff > 0) {
+          totalHours += afternoonDiff / (1000 * 60 * 60)
+        }
+      }
+    } catch (error) {
+      console.error('Error calculating hours for record:', record, error)
+    }
+
+    return Math.max(0, totalHours)
+  }
+
+  const getFirstClockIn = (record: TimeEntry): string | null => {
+    if (record.morningClockIn) return record.morningClockIn
+    if (record.afternoonClockIn) return record.afternoonClockIn
+    return null
+  }
+
+  const getLastClockOut = (record: TimeEntry): string | null => {
+    if (record.afternoonClockOut) return record.afternoonClockOut
+    if (record.morningClockOut) return record.morningClockOut
+    return null
   }
 
   const getLastValidMonth = () => {
-    const validRecordsForMonth = (data ?? [])
-      .filter(
-        (record) =>
+    if (!data || data.length === 0) return null
+
+    const validRecordsForMonth = data
+      .filter((record) => {
+        return (
           record.date &&
           record.employee === 'thalia' &&
-          !!record.clockIn &&
-          !!record.clockOut
-      )
+          (record.morningClockIn || record.afternoonClockIn) &&
+          (record.morningClockOut || record.afternoonClockOut)
+        )
+      })
       .map((record) => parseRecordDate(record.date))
       .sort((a, b) => b.getTime() - a.getTime())
 
@@ -55,10 +129,10 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
     const year = latestDate.getFullYear()
     const month = latestDate.getMonth()
 
-    const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
-
-    return { from: firstDay, to: lastDay }
+    return {
+      from: new Date(year, month, 1),
+      to: new Date(year, month + 1, 0),
+    }
   }
 
   const effectiveDateRange =
@@ -68,42 +142,48 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
     if (!record.date) return false
     if (!effectiveDateRange?.from && !effectiveDateRange?.to) return true
 
-    const recordDate = parseRecordDate(record.date)
-    const afterFrom = effectiveDateRange?.from
-      ? recordDate >= effectiveDateRange.from
-      : true
-    const beforeTo = effectiveDateRange?.to
-      ? recordDate <= effectiveDateRange.to
-      : true
+    try {
+      const recordDate = parseRecordDate(record.date)
+      const afterFrom = effectiveDateRange?.from
+        ? recordDate >= effectiveDateRange.from
+        : true
+      const beforeTo = effectiveDateRange?.to
+        ? recordDate <= effectiveDateRange.to
+        : true
 
-    return afterFrom && beforeTo
+      return afterFrom && beforeTo
+    } catch (error) {
+      console.error('Error filtering record:', record, error)
+      return false
+    }
   })
 
-  const validRecords = (filteredData ?? [])
-    .filter(
-      (record) =>
-        record.employee === 'thalia' && !!record.clockIn && !!record.clockOut
-    )
-    .map((record) => {
-      const clockInDate = new Date(record.clockIn!)
-      const clockOutDate = new Date(record.clockOut!)
-      const diffMs = clockOutDate.getTime() - clockInDate.getTime()
-      const workedHours = Math.max(0, diffMs / (1000 * 60 * 60))
+  const validRecords = filteredData
+    .filter((record) => {
+      const hasEmployee = record.employee === 'thalia'
+      const hasClockIn = record.morningClockIn || record.afternoonClockIn
+      const hasClockOut = record.morningClockOut || record.afternoonClockOut
 
+      return hasEmployee && hasClockIn && hasClockOut
+    })
+    .map((record) => {
+      const workedHours = calculateDayHours(record)
+      const firstClockIn = getFirstClockIn(record)
+      const lastClockOut = getLastClockOut(record)
       const recordDate = parseRecordDate(record.date)
-      const formattedDate = recordDate.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-      })
 
       return {
-        date: formattedDate,
+        date: recordDate.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+        }),
         fullDate: recordDate,
         hours: parseFloat(workedHours.toFixed(2)),
-        clockIn: record.clockIn!,
-        clockOut: record.clockOut!,
+        clockIn: firstClockIn || '',
+        clockOut: lastClockOut || '',
       }
     })
+    .filter((record) => record.hours > 0 && record.clockIn && record.clockOut)
     .sort((a, b) => a.fullDate.getTime() - b.fullDate.getTime())
 
   const stats = {
@@ -164,14 +244,9 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
 
     const minHours = Math.min(...validRecords.map((r) => r.hours))
     const maxHours = Math.max(...validRecords.map((r) => r.hours))
+    const padding = Math.max((maxHours - minHours) * 0.1, 0.5)
 
-    // Adiciona uma pequena margem para melhor visualização
-    const padding = (maxHours - minHours) * 0.1 || 0.5 // Se todos os valores forem iguais, usa padding fixo
-
-    return [
-      Math.max(0, minHours - padding), // Não deixa valores negativos
-      maxHours + padding,
-    ]
+    return [Math.max(0, minHours - padding), maxHours + padding]
   }
 
   if (isLoading) {
@@ -189,6 +264,26 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
         <Card className="animate-pulse">
           <CardContent className="p-6">
             <div className="h-96 bg-gray-200 rounded"></div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Debug: Verificar se não há dados
+  if (!data || data.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-2 mb-6">
+          <User className="h-6 w-6 text-primary" />
+          <h1 className="text-2xl font-bold">Dashboard - Thalia</h1>
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center text-muted-foreground">
+              Nenhum dado encontrado. Verifique se há registros de ponto para a
+              funcionária Thalia.
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -260,7 +355,10 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
                   Meta 8h/dia
                 </p>
                 <p className="text-2xl font-bold text-orange-900">
-                  {((stats.averageHours / 8) * 100).toFixed(0)}%
+                  {stats.averageHours > 0
+                    ? ((stats.averageHours / 8) * 100).toFixed(0)
+                    : 0}
+                  %
                 </p>
               </div>
               <Target className="h-8 w-8 text-orange-500" />
@@ -281,13 +379,13 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
               <ResponsiveContainer width="100%" height={450}>
                 <BarChart
                   data={validRecords}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                 >
                   <XAxis
                     dataKey="date"
                     tick={{ fontSize: 11 }}
-                    interval="preserveStartEnd"
-                    angle={-30}
+                    interval={0}
+                    angle={-45}
                     textAnchor="end"
                     height={60}
                   />
@@ -310,8 +408,16 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-[350px] text-muted-foreground">
-                Nenhum registro encontrado
+              <div className="flex items-center justify-center h-[450px] text-muted-foreground">
+                <div className="text-center">
+                  <p className="text-lg font-medium">
+                    Nenhum registro encontrado
+                  </p>
+                  <p className="text-sm">
+                    Verifique os filtros de data ou se há registros para o
+                    período selecionado
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>
@@ -324,44 +430,52 @@ export const DashboardRecords = ({ dateRange }: DashboardRecordsProps) => {
           </CardHeader>
           <CardContent>
             {validRecords.length > 0 ? (
-              <ResponsiveContainer width="100%" height={350}>
-                <PieChart>
-                  <Pie
-                    data={workingHoursDistribution}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={120}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {workingHoursDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+              <>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={workingHoursDistribution.filter(
+                        (item) => item.value > 0
+                      )}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={120}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {workingHoursDistribution
+                        .filter((item) => item.value > 0)
+                        .map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value, name) => [`${value} dias`, name]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-4 space-y-2">
+                  {workingHoursDistribution
+                    .filter((item) => item.value > 0)
+                    .map((item, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <span className="text-sm">
+                          {item.name}: {item.value} dias
+                        </span>
+                      </div>
                     ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value, name) => [`${value} dias`, name]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+                </div>
+              </>
             ) : (
               <div className="flex items-center justify-center h-[350px] text-muted-foreground">
                 Sem dados disponíveis
               </div>
             )}
-            <div className="mt-4 space-y-2">
-              {workingHoursDistribution.map((item, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="text-sm">
-                    {item.name}: {item.value} dias
-                  </span>
-                </div>
-              ))}
-            </div>
           </CardContent>
         </Card>
       </div>

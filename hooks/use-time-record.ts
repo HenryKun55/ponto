@@ -102,22 +102,20 @@ const timeRecordApi = {
         return result
       },
       onSuccess: (_, variables) => {
-        queryClient.refetchQueries({
+        queryClient.invalidateQueries({
           queryKey: timeRecordKeys.fetchTodayEntry(variables.employee),
         })
-        // queryClient.invalidateQueries({
-        //   queryKey: timeRecordKeys.fetchTodayEntry(variables.employee),
-        // })
-        // queryClient.invalidateQueries({ queryKey: timeRecordKeys.fetchAll() })
-        // queryClient.invalidateQueries({
-        //   queryKey: timeRecordKeys.fetchEmployee(variables.employee),
-        // })
-        // queryClient.invalidateQueries({
-        //   queryKey: timeRecordKeys.all,
-        //   predicate: (query) => {
-        //     return query.queryKey[1] === 'fetchFiltered'
-        //   },
-        // })
+        queryClient.invalidateQueries({ queryKey: timeRecordKeys.fetchAll() })
+        queryClient.invalidateQueries({
+          queryKey: timeRecordKeys.fetchEmployee(variables.employee),
+        })
+        queryClient.invalidateQueries({
+          queryKey: timeRecordKeys.all,
+          predicate: (query) => {
+            return query.queryKey[1] === 'fetchFiltered'
+          },
+        })
+        window.location.reload()
       },
       onError: (error) => {
         console.error('Erro no clock out:', error)

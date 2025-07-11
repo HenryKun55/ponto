@@ -55,36 +55,106 @@ export const generateTimeEntries = (
   for (let i = 0; i < count; i++) {
     const currentDate = new Date(startDate)
     currentDate.setDate(currentDate.getDate() + i)
-
     const yyyy = currentDate.getFullYear()
     const mm = pad(currentDate.getMonth() + 1)
     const dd = pad(currentDate.getDate())
     const dateStr = `${yyyy}-${mm}-${dd}`
 
-    const clockIn = new Date(currentDate)
-    clockIn.setHours(
-      8 + Math.floor(Math.random() * 2),
-      Math.floor(Math.random() * 60)
-    )
+    const workedMorning = Math.random() > 0.1 // 90% chance of working morning
+    const workedAfternoon = Math.random() > 0.3 // 70% chance of working afternoon
 
-    const clockOut = new Date(clockIn)
-    clockOut.setHours(clockIn.getHours() + 8, Math.floor(Math.random() * 60))
+    let morningClockIn: string | null = null
+    let morningClockOut: string | null = null
+    let morningClockInLocation: GeoLocation | null = null
+    let morningClockOutLocation: GeoLocation | null = null
+    let realMorningClockInTime: string | null = null
+    let realMorningClockOutTime: string | null = null
 
-    const createdAt = new Date(clockOut.getTime() + 10000).toISOString()
-    const realClockInTime = new Date(clockIn.getTime() + 1000).toISOString()
-    const realClockOutTime = new Date(clockOut.getTime() + 2000).toISOString()
+    let afternoonClockIn: string | null = null
+    let afternoonClockOut: string | null = null
+    let afternoonClockInLocation: GeoLocation | null = null
+    let afternoonClockOutLocation: GeoLocation | null = null
+    let realAfternoonClockInTime: string | null = null
+    let realAfternoonClockOutTime: string | null = null
+
+    const baseCreatedAt = new Date(currentDate)
+    baseCreatedAt.setHours(18, 0, 0, 0) // Base time for created at
+
+    if (workedMorning) {
+      const morningIn = new Date(currentDate)
+      morningIn.setHours(
+        7 + Math.floor(Math.random() * 2), // 7-8 AM
+        Math.floor(Math.random() * 60)
+      )
+
+      const morningOut = new Date(morningIn)
+      morningOut.setHours(
+        morningIn.getHours() + 3 + Math.floor(Math.random() * 2), // 3-4 hours later
+        Math.floor(Math.random() * 60)
+      )
+
+      morningClockIn = morningIn.toISOString()
+      morningClockOut = morningOut.toISOString()
+      morningClockInLocation = createGeoLocation()
+      morningClockOutLocation = createGeoLocation()
+      realMorningClockInTime = new Date(
+        morningIn.getTime() + 1000
+      ).toISOString()
+      realMorningClockOutTime = new Date(
+        morningOut.getTime() + 2000
+      ).toISOString()
+    }
+
+    if (workedAfternoon) {
+      const afternoonIn = new Date(currentDate)
+      afternoonIn.setHours(
+        13 + Math.floor(Math.random() * 2), // 1-2 PM
+        Math.floor(Math.random() * 60)
+      )
+
+      const afternoonOut = new Date(afternoonIn)
+      afternoonOut.setHours(
+        afternoonIn.getHours() + 3 + Math.floor(Math.random() * 2), // 3-4 hours later
+        Math.floor(Math.random() * 60)
+      )
+
+      afternoonClockIn = afternoonIn.toISOString()
+      afternoonClockOut = afternoonOut.toISOString()
+      afternoonClockInLocation = createGeoLocation()
+      afternoonClockOutLocation = createGeoLocation()
+      realAfternoonClockInTime = new Date(
+        afternoonIn.getTime() + 1000
+      ).toISOString()
+      realAfternoonClockOutTime = new Date(
+        afternoonOut.getTime() + 2000
+      ).toISOString()
+    }
+
+    const createdAt = new Date(
+      baseCreatedAt.getTime() + Math.random() * 3600000
+    ).toISOString() // Random time within an hour
+    const updatedAt = new Date(
+      new Date(createdAt).getTime() + Math.random() * 3600000
+    ).toISOString() // Updated after created
 
     entries.push({
-      id: `emp-${i}-${clockIn.getTime()}`,
+      id: `emp-${i}-${currentDate.getTime()}`,
       employee: 'thalia',
       date: dateStr,
-      clockIn: clockIn.toISOString(),
-      clockOut: clockOut.toISOString(),
-      clockInLocation: createGeoLocation(),
-      clockOutLocation: createGeoLocation(),
+      morningClockIn,
+      morningClockOut,
+      morningClockInLocation,
+      morningClockOutLocation,
+      realMorningClockInTime,
+      realMorningClockOutTime,
+      afternoonClockIn,
+      afternoonClockOut,
+      afternoonClockInLocation,
+      afternoonClockOutLocation,
+      realAfternoonClockInTime,
+      realAfternoonClockOutTime,
       createdAt,
-      realClockInTime,
-      realClockOutTime,
+      updatedAt,
     })
   }
 

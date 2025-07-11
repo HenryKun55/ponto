@@ -38,18 +38,39 @@ export const firestoreToEntry = (doc: any): TimeEntry => {
   return {
     id: doc.id,
     employee: data.employee,
-    clockIn: data.clockIn ? timestampToISOString(data.clockIn) : null,
-    clockOut: data.clockOut ? timestampToISOString(data.clockOut) : null,
-    clockInLocation: data.clockInLocation,
-    clockOutLocation: data.clockOutLocation,
     date: data.date,
     createdAt: timestampToISOString(data.createdAt),
-    realClockInTime: data.realClockInTime
-      ? timestampToISOString(data.realClockInTime)
+
+    morningClockIn: data.morningClockIn
+      ? timestampToISOString(data.morningClockIn)
       : null,
-    realClockOutTime: data.realClockOutTime
-      ? timestampToISOString(data.realClockOutTime)
+    morningClockOut: data.morningClockOut
+      ? timestampToISOString(data.morningClockOut)
       : null,
+    morningClockInLocation: data.morningClockInLocation || null,
+    morningClockOutLocation: data.morningClockOutLocation || null,
+    realMorningClockInTime: data.realMorningClockInTime
+      ? timestampToISOString(data.realMorningClockInTime)
+      : null,
+    realMorningClockOutTime: data.realMorningClockOutTime
+      ? timestampToISOString(data.realMorningClockOutTime)
+      : null,
+
+    afternoonClockIn: data.afternoonClockIn
+      ? timestampToISOString(data.afternoonClockIn)
+      : null,
+    afternoonClockOut: data.afternoonClockOut
+      ? timestampToISOString(data.afternoonClockOut)
+      : null,
+    afternoonClockInLocation: data.afternoonClockInLocation || null,
+    afternoonClockOutLocation: data.afternoonClockOutLocation || null,
+    realAfternoonClockInTime: data.realAfternoonClockInTime
+      ? timestampToISOString(data.realAfternoonClockInTime)
+      : null,
+    realAfternoonClockOutTime: data.realAfternoonClockOutTime
+      ? timestampToISOString(data.realAfternoonClockOutTime)
+      : null,
+    updatedAt: data.updatedAt,
   }
 }
 
