@@ -79,6 +79,7 @@ const timeRecordApi = {
             return query.queryKey[1] === 'fetchFiltered'
           },
         })
+        window.location.reload()
       },
       onError: (error) => {
         console.error('Erro no clock in:', error)

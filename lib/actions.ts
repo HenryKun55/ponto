@@ -19,22 +19,50 @@ import {
 } from './firebase'
 import { GeoLocation, Period, TimeEntry } from './types'
 
-const determinePeriod = (selectedTime: string): Period => {
+const getCurrentPeriod = (): Period => {
+  const now = new Date()
+  const hour = now.getHours()
+  return hour < 13 ? Period.MORNING : Period.AFTERNOON
+}
+
+const isValidTimeForPeriod = (
+  selectedTime: string,
+  period: Period
+): boolean => {
   const [hours] = selectedTime.split(':')
   const hour = Number.parseInt(hours)
 
-  return hour < 13 ? Period.MORNING : Period.AFTERNOON
+  if (period === Period.MORNING) {
+    return hour >= 6 && hour < 13 // Manhã: 06:00 às 12:59
+  } else {
+    return hour >= 13 && hour < 23 // Tarde: 13:00 às 22:59
+  }
 }
 
 export const clockIn = async (
   employee: string,
   selectedTime: string,
   location: GeoLocation | null,
-  todayEntry: TimeEntry | null | undefined
+  todayEntry: TimeEntry | null | undefined,
+  period: 'morning' | 'afternoon'
 ) => {
   const now = new Date()
   const today = now.toISOString().split('T')[0]
-  const period = determinePeriod(selectedTime)
+  const currentPeriod = period
+    ? period === 'morning'
+      ? Period.MORNING
+      : Period.AFTERNOON
+    : getCurrentPeriod()
+
+  if (!isValidTimeForPeriod(selectedTime, currentPeriod)) {
+    const periodName = currentPeriod === Period.MORNING ? 'manhã' : 'tarde'
+    const timeRange =
+      currentPeriod === Period.MORNING ? '06:00 às 12:59' : '13:00 às 22:59'
+    return {
+      success: false,
+      message: `Horário inválido para o período da ${periodName}. Selecione um horário entre ${timeRange}.`,
+    }
+  }
 
   try {
     if (!todayEntry) {
@@ -59,7 +87,7 @@ export const clockIn = async (
       }
     }
 
-    if (period === Period.MORNING) {
+    if (currentPeriod === Period.MORNING) {
       if (todayEntry.morningClockIn && !todayEntry.morningClockOut) {
         return { success: false, message: 'Já registrou entrada da manhã.' }
       }
@@ -98,10 +126,25 @@ export const clockIn = async (
 export const clockOut = async (
   selectedTime: string,
   location: GeoLocation | null,
-  todayEntry: TimeEntry | null | undefined
+  todayEntry: TimeEntry | null | undefined,
+  period: 'morning' | 'afternoon'
 ) => {
   const now = new Date()
-  const period = determinePeriod(selectedTime)
+  const currentPeriod = period
+    ? period === 'morning'
+      ? Period.MORNING
+      : Period.AFTERNOON
+    : getCurrentPeriod()
+
+  if (!isValidTimeForPeriod(selectedTime, currentPeriod)) {
+    const periodName = currentPeriod === Period.MORNING ? 'manhã' : 'tarde'
+    const timeRange =
+      currentPeriod === Period.MORNING ? '06:00 às 12:59' : '13:00 às 22:59'
+    return {
+      success: false,
+      message: `Horário inválido para o período da ${periodName}. Selecione um horário entre ${timeRange}.`,
+    }
+  }
 
   try {
     if (!todayEntry) {
@@ -111,7 +154,7 @@ export const clockOut = async (
       }
     }
 
-    if (period === Period.MORNING) {
+    if (currentPeriod === Period.MORNING) {
       if (!todayEntry.morningClockIn) {
         return {
           success: false,
@@ -122,6 +165,13 @@ export const clockOut = async (
         return {
           success: false,
           message: 'Já registrou saída da manhã.',
+        }
+      }
+
+      if (selectedTime <= todayEntry.morningClockIn) {
+        return {
+          success: false,
+          message: 'Horário de saída deve ser posterior ao de entrada.',
         }
       }
 
@@ -139,6 +189,13 @@ export const clockOut = async (
         return {
           success: false,
           message: 'Já registrou saída da tarde.',
+        }
+      }
+
+      if (selectedTime <= todayEntry.afternoonClockIn) {
+        return {
+          success: false,
+          message: 'Horário de saída deve ser posterior ao de entrada.',
         }
       }
 
