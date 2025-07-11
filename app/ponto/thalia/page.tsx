@@ -15,7 +15,6 @@ import { useFetchTodayEntry } from '@/hooks/use-time-record'
 export default function ThaliaPonto() {
   const employee = 'thalia'
   const { data: todayEntry, isLoading, error } = useFetchTodayEntry(employee)
-  console.log({ todayEntry })
 
   const today = new Date().toLocaleDateString('pt-BR')
 
