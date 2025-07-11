@@ -1,4 +1,5 @@
 'use client'
+
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -16,7 +17,7 @@ type ClockFormProps = {
 const getCurrentPeriod = () => {
   const now = new Date()
   const hour = now.getHours()
-  return hour < 13 ? 'morning' : 'afternoon'
+  return hour < 13 ? ('morning' as const) : ('afternoon' as const)
 }
 
 const canClockIn = (
@@ -95,6 +96,7 @@ export const ClockForm = ({ employee, todayEntry }: ClockFormProps) => {
         selectedTime: selectedDateTime.toISOString(),
         location,
         todayEntry,
+        period: currentPeriod,
       }
 
       actionType === 'in'
@@ -109,6 +111,7 @@ export const ClockForm = ({ employee, todayEntry }: ClockFormProps) => {
       )
     } catch (error) {
       console.error('Erro ao registrar ponto', error)
+      toast.error('Erro ao registrar ponto. ' + error)
     } finally {
       setIsLoading(false)
       setShowTimePicker(false)

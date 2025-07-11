@@ -45,17 +45,20 @@ const timeRecordApi = {
         selectedTime,
         location,
         todayEntry,
+        period,
       }: {
         employee: string
         selectedTime: string
         location: GeoLocation | null
         todayEntry: TimeEntry | null | undefined
+        period: 'morning' | 'afternoon'
       }) => {
         const result = await clockIn(
           employee,
           selectedTime,
           location,
-          todayEntry
+          todayEntry,
+          period
         )
         if (!result.success) {
           throw new Error(result.message)
@@ -89,13 +92,20 @@ const timeRecordApi = {
         selectedTime,
         location,
         todayEntry,
+        period,
       }: {
         employee: string
         selectedTime: string
         location: GeoLocation | null
         todayEntry: TimeEntry | null | undefined
+        period: 'morning' | 'afternoon'
       }) => {
-        const result = await clockOut(selectedTime, location, todayEntry)
+        const result = await clockOut(
+          selectedTime,
+          location,
+          todayEntry,
+          period
+        )
         if (!result.success) {
           throw new Error(result.message)
         }

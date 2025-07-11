@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card'
 import { useFetchTodayEntry } from '@/hooks/use-time-record'
 
-export default function ThaliaPonto() {
+export default () => {
   const employee = 'thalia'
   const { data: todayEntry, isLoading, error } = useFetchTodayEntry(employee)
 

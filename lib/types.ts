@@ -66,3 +66,19 @@ export enum ActionType {
   CLOCK_IN = 'in',
   CLOCK_OUT = 'out',
 }
+
+export type ClockInInput = {
+  employee: string
+  selectedTime: string
+  location: GeoLocation | null
+  todayEntry: TimeEntry | null | undefined
+  period: 'morning' | 'afternoon'
+}
+
+export type ClockOutInput = {
+  employee: string
+  selectedTime: string
+  location: GeoLocation | null
+  todayEntry: TimeEntry | null | undefined
+  period: 'morning' | 'afternoon'
+}
