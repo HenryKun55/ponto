@@ -53,15 +53,15 @@ export const clockIn = async (
       : Period.AFTERNOON
     : getCurrentPeriod()
 
-  // if (!isValidTimeForPeriod(selectedTime, currentPeriod)) {
-  //   const periodName = currentPeriod === Period.MORNING ? 'manhã' : 'tarde'
-  //   const timeRange =
-  //     currentPeriod === Period.MORNING ? '06:00 às 12:59' : '13:00 às 22:59'
-  //   return {
-  //     success: false,
-  //     message: `Horário inválido para o período da ${periodName}. Selecione um horário entre ${timeRange}.`,
-  //   }
-  // }
+  if (!isValidTimeForPeriod(selectedTime, currentPeriod)) {
+    const periodName = currentPeriod === Period.MORNING ? 'manhã' : 'tarde'
+    const timeRange =
+      currentPeriod === Period.MORNING ? '06:00 às 12:59' : '13:00 às 22:59'
+    return {
+      success: false,
+      message: `Horário inválido para o período da ${periodName}. Selecione um horário entre ${timeRange}.`,
+    }
+  }
 
   let todayEntry = await getTodayEntry(employee)
 
@@ -137,15 +137,15 @@ export const clockOut = async (
       : Period.AFTERNOON
     : getCurrentPeriod()
 
-  // if (!isValidTimeForPeriod(selectedTime, currentPeriod)) {
-  //   const periodName = currentPeriod === Period.MORNING ? 'manhã' : 'tarde'
-  //   const timeRange =
-  //     currentPeriod === Period.MORNING ? '06:00 às 12:59' : '13:00 às 22:59'
-  //   return {
-  //     success: false,
-  //     message: `Horário inválido para o período da ${periodName}. Selecione um horário entre ${timeRange}.`,
-  //   }
-  // }
+  if (!isValidTimeForPeriod(selectedTime, currentPeriod)) {
+    const periodName = currentPeriod === Period.MORNING ? 'manhã' : 'tarde'
+    const timeRange =
+      currentPeriod === Period.MORNING ? '06:00 às 12:59' : '13:00 às 22:59'
+    return {
+      success: false,
+      message: `Horário inválido para o período da ${periodName}. Selecione um horário entre ${timeRange}.`,
+    }
+  }
 
   let todayEntry = await getTodayEntry(employee)
 
